@@ -1,0 +1,16 @@
+{
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": true
+      },
+      "previewLimit": 50,
+      "server": "dpg-cj86jjsl975s73frl1cg-a.frankfurt-postgres.render.com",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "iwexlms",
+      "database": "iwexlms",
+      "username": "admin"
+    }
+  ]
+}
