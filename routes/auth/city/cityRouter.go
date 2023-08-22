@@ -8,7 +8,7 @@ import (
 )
 
 func SetupCityRoutes(router fiber.Router) {
-	cityRouter := router.Group("/cities")
+	cityRouter := router.Group("/city")
 
 	cityRouter.Get("/", FindAll)
 	cityRouter.Get("/:id", FindOne)
