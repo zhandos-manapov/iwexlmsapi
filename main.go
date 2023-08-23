@@ -10,39 +10,43 @@ import (
 	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
+
 )
 
 func loadEnv() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading environment variables file")
-	}
+ err := godotenv.Load(".env")
+ if err != nil {
+  log.Fatalf("Error loading environment variables file")
+ }
 }
 
 func main() {
 
-	loadEnv()
+ loadEnv()
 
-	utils.InitKeys()
+ database.ConnectToDB()
+ defer database.DisconnectFromDB()
 
-	database.ConnectToDB()
-	defer database.DisconnectFromDB()
+ validate := validator.New()
+ xvalidator.InitValidator(validate)
 
-	validate := validator.New()
-	xvalidator.InitValidator(validate)
+ app := fiber.New(fiber.Config{
+  ErrorHandler: func(c *fiber.Ctx, err error) error {
+   code := fiber.StatusInternalServerError
 
-	app := fiber.New(fiber.Config{
-		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			code := fiber.StatusInternalServerError
+   var e *fiber.Error
+   if errors.As(err, &e) {
+    code = e.Code
+   }
+   return c.Status(code).JSON(models.ServerError{Message: err.Error()})
+  },
+ })
+ app.Use(cors.New(cors.Config{
+  AllowOrigins: "*",
+  AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+ }))
 
-			var e *fiber.Error
-			if errors.As(err, &e) {
-				code = e.Code
-			}
-			return c.Status(code).JSON(models.ServerError{Message: err.Error()})
-		},
-	})
-
-	setupRoutes(app)
-	app.Listen(":3030")
+ setupRoutes(app)
+ app.Listen(":3030")
 }
+
