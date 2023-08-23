@@ -2,15 +2,16 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/models"
 	"iwexlmsapi/xvalidator"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 const reqBody = "body"
 
-func BodyParserValidatorMiddleware[T models.User | models.UserLog](data *T) func(c *fiber.Ctx) error {
+func BodyParserValidatorMiddleware[T models.User | models.UserLog | models.Region](data *T) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		if err := c.BodyParser(data); err != nil {
 			return err
