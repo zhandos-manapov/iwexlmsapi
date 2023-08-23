@@ -2,14 +2,18 @@ package main
 
 import (
 	"errors"
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
+
+	"github.com/go-playground/validator/v10"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+
+	"github.com/joho/godotenv"
 )
 
 func loadEnv() {
@@ -24,7 +28,6 @@ func main() {
 	loadEnv()
 
 	utils.InitKeys()
-
 	database.ConnectToDB()
 	defer database.DisconnectFromDB()
 
@@ -42,7 +45,10 @@ func main() {
 			return c.Status(code).JSON(models.ServerError{Message: err.Error()})
 		},
 	})
-
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173", // Укажите здесь разрешенные домены
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+	}))
 	setupRoutes(app)
 	app.Listen(":3030")
 }

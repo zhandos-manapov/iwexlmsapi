@@ -8,7 +8,7 @@ type User struct {
 	ContactNumber string `json:"contact_number" validate:"len=10"`
 	DateOfBirth   string `json:"date_of_birth" validate:"datetime=2006-01-02"`
 	Password      string `json:"password" validate:"required"`
-	Role          byte   `json:"role"`
+	Role          Role   `json:"role"`
 	RoleName      string `json:"role_name"`
 	IsActive      bool   `json:"is_active"`
 	Hash          string
@@ -18,4 +18,9 @@ type User struct {
 type UserLog struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
+}
+
+type Role struct {
+	ID       int    `json:"id"`
+	RoleName string `json:"role_name"`
 }
