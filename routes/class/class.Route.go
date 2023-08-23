@@ -5,7 +5,7 @@ import (
 )
 
 func SetupClassRoutes(r *fiber.Router) {
-	classRouter := (*r).Group("/class")
+	classRouter := (*r).Group("/classes")
 
 	classRouter.Get("/", findMany)
 	classRouter.Get("/:id", findOne)
