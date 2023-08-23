@@ -2,15 +2,15 @@ package main
 
 import (
 	"errors"
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
-	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
 
 func loadEnv() {
@@ -49,4 +49,3 @@ func main() {
  setupRoutes(app)
  app.Listen(":3030")
 }
-
