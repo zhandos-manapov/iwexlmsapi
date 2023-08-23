@@ -12,6 +12,6 @@ func SetupLevelRoute(router fiber.Router) {
 	localRouter.Get("/:id", FindOne)
 	localRouter.Get("/", FindMany)
 	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Level{}), CreateOne)
-	localRouter.Put("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), UpdateOne)
+	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), UpdateOne)
 	localRouter.Delete("/:id", DeleteOne)
 }
