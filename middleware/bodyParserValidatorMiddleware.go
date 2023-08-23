@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/models"
 	"iwexlmsapi/xvalidator"
 	"strings"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 const reqBody = "body"

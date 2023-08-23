@@ -2,14 +2,14 @@ package main
 
 import (
 	"errors"
-	"iwexlmsapi/database"
-	"iwexlmsapi/models"
-	"iwexlmsapi/xvalidator"
-	"log"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"iwexlmsapi/database"
+	"iwexlmsapi/models"
+	"iwexlmsapi/utils"
+	"iwexlmsapi/xvalidator"
+	"log"
 )
 
 func loadEnv() {
@@ -22,6 +22,8 @@ func loadEnv() {
 func main() {
 
 	loadEnv()
+
+	utils.InitKeys()
 
 	database.ConnectToDB()
 	defer database.DisconnectFromDB()
