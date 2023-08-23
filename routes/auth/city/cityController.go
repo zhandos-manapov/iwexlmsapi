@@ -4,7 +4,6 @@ import (
 	"context"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
@@ -18,21 +17,21 @@ func FindOne(c *fiber.Ctx) error {
 	var city models.City
 	if err := row.Scan(&city.ID, &city.CityName, &city.RegionID); err != nil {
 		if err == pgx.ErrNoRows {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Город не найден",
 			})
 		}
-		return c.Status(http.StatusInternalServerError).SendString("Internal Server Error")
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 	}
 
-	return c.Status(http.StatusOK).JSON(city)
+	return c.Status(fiber.StatusOK).JSON(city)
 }
 
 func FindAll(c *fiber.Ctx) error {
 	query := "SELECT * FROM city"
 	rows, err := database.Pool.Query(context.Background(), query)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).SendString("Internal Server Error")
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 	}
 	defer rows.Close()
 
@@ -40,24 +39,24 @@ func FindAll(c *fiber.Ctx) error {
 	for rows.Next() {
 		var city models.City
 		if err := rows.Scan(&city.ID, &city.CityName, &city.RegionID); err != nil {
-			return c.Status(http.StatusInternalServerError).SendString("Internal Server Error")
+			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 		}
 		cities = append(cities, city)
 	}
 
 	if len(cities) == 0 {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Города не найдены",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(cities)
+	return c.Status(fiber.StatusOK).JSON(cities)
 }
 
 func CreateOne(c *fiber.Ctx) error {
 	var city models.City
 	if err := c.BodyParser(&city); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Ошибка разбора данных",
 		})
 	}
@@ -65,19 +64,19 @@ func CreateOne(c *fiber.Ctx) error {
 	query := "INSERT INTO city (city_name, region_id) VALUES($1, $2)"
 	_, err := database.Pool.Exec(context.Background(), query, city.CityName, city.RegionID)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Данное название уже существует",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "Город успешно добавлен"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Город успешно добавлен"})
 }
 
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var city models.City
 	if err := c.BodyParser(&city); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Ошибка разбора данных",
 		})
 	}
@@ -85,12 +84,12 @@ func UpdateOne(c *fiber.Ctx) error {
 	query := "UPDATE city SET city_name=$1 WHERE id=$2"
 	_, err := database.Pool.Exec(context.Background(), query, city.CityName, id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Ошибка в изменениях данных",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "Успешно обновлено"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Успешно обновлено"})
 }
 
 func DeleteOne(c *fiber.Ctx) error {
@@ -98,10 +97,10 @@ func DeleteOne(c *fiber.Ctx) error {
 	query := "DELETE FROM city WHERE id=$1"
 	_, err := database.Pool.Exec(context.Background(), query, id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Ошибка при удалении города",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"message": "Город успешно удален"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Город успешно удален"})
 }
