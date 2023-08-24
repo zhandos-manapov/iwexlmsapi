@@ -4,6 +4,7 @@ import (
 	"context"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,14 +22,16 @@ func FindMany(c *fiber.Ctx) error {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
+		var dob time.Time
 		err := rows.Scan(
 			&user.Id, &user.FirstName, &user.LastName, &user.Email,
-			&user.ContactNumber, &user.DateOfBirth, &user.IsActive,
-			&user.Role.ID, &user.RoleName,
+			&user.ContactNumber, &dob, &user.IsActive,
+			&user.Role, &user.RoleName,
 		)
 		if err != nil {
 			return err
 		}
+		user.DateOfBirth = dob.Format("2006-01-02")
 		users = append(users, user)
 	}
 
@@ -51,7 +54,7 @@ func FindOne(c *fiber.Ctx) error {
 	if err := row.Scan(
 		&user.Id, &user.FirstName, &user.LastName, &user.Email,
 		&user.ContactNumber, &user.DateOfBirth, &user.IsActive,
-		&user.Role.ID, &user.RoleName,
+		&user.Role, &user.RoleName,
 	); err != nil {
 		return err
 	}

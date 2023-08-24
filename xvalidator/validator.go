@@ -1,8 +1,9 @@
 package xvalidator
 
 import (
-	"github.com/go-playground/validator/v10"
 	"iwexlmsapi/models"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var validate *validator.Validate

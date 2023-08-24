@@ -46,9 +46,10 @@ func main() {
 		},
 	})
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173", // Укажите здесь разрешенные домены
+		AllowOrigins: "http://localhost:5173",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
+
 	setupRoutes(app)
 	app.Listen(":3030")
 }
