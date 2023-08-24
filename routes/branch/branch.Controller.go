@@ -9,36 +9,48 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 )
 
 func findMany(c *fiber.Ctx) error {
-	query := "SELECT * FROM branch_office"
-	rows, err := database.Pool.Query(context.Background(), query)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(errors.ServerError{Message: err.Error()})
-	}
-	defer rows.Close()
-	
-	branchOffices := []models.BranchOffice{}
+    query := "SELECT * FROM branch_office"
+    rows, err := database.Pool.Query(context.Background(), query)
+    if err != nil {
+        return c.Status(http.StatusInternalServerError).JSON(errors.ServerError{Message: err.Error()})
+    }
+    defer rows.Close()
 
-	err = pgx.CollectRows(rows, &branchOffices, pgx.RowToStructs)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(errors.ServerError{Message: err.Error()})
-	}
+    branchOffices := []models.BranchOffice{}
+    for rows.Next() {
+        branchOffice := models.BranchOffice{}
+        var id int
+        var name sql.NullString
+        var address sql.NullString
+        if err := rows.Scan(&id, &name, &address); err != nil {
+            return c.Status(http.StatusInternalServerError).JSON(errors.ServerError{Message: err.Error()})
+        }
+        branchOffice.ID = id
+        if name.Valid {
+            branchOffice.Name = name.String
+        }
+        if address.Valid {
+            branchOffice.Address = address.String
+        }
+        branchOffices = append(branchOffices, branchOffice)
+    }
 
-	if len(branchOffices) == 0 {
-		return c.Status(http.StatusNotFound).JSON(errors.NotFoundError{Message: "Филиалы не найдены"})
-	}
+    if len(branchOffices) == 0 {
+        return c.Status(http.StatusNotFound).JSON(errors.NotFoundError{Message: "Филиалы не найдены"})
+    }
 
-	return c.JSON(branchOffices)
+    return c.JSON(branchOffices)
 }
+
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM branch_office WHERE id = $1"
 	row := database.Pool.QueryRow(context.Background(), query, id)
-	branchOffice := models.BranchOffice{}
+	branchOffice :=  models.BranchOffice{}
 	err := row.Scan(&branchOffice.ID, &branchOffice.Name, &branchOffice.Address)
 	if err != nil {
 		if err == sql.ErrNoRows {
