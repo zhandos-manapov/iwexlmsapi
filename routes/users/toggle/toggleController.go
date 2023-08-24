@@ -13,8 +13,9 @@ func Toggle(c *fiber.Ctx) error {
 		IsActive bool `json:"is_active"`
 	}
 	if err := c.BodyParser(&requestBody); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Error parsing data",
+		err := fiber.NewError(fiber.StatusBadRequest, "Error parsing data")
+		return c.Status(err.Code).JSON(fiber.Map{
+			"error": err.Message,
 		})
 	}
 
@@ -22,7 +23,7 @@ func Toggle(c *fiber.Ctx) error {
         UPDATE users SET is_active=$1 WHERE id=$2`
 	_, err := database.Pool.Exec(context.Background(), query, requestBody.IsActive, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return fiber.NewError(fiber.StatusInternalServerError, "Internal Server Error")
 	}
 
 	message := "Успешно активирован"
@@ -30,5 +31,5 @@ func Toggle(c *fiber.Ctx) error {
 		message = "Успешно деактивирован"
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": message})
+	return c.JSON(fiber.Map{"message": message})
 }

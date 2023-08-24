@@ -12,11 +12,11 @@ func SetupUsersRoutes(router *fiber.Router) {
 	usersRouter := (*router).Group("/user")
 
 	usersRouter.Get("/", FindMany)
-	usersRouter.Options("/:id", FindOne)
+	usersRouter.Get("/:id", FindOne)
 
 	usersRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.User{}), CreateOne)
-	usersRouter.Put("/:id", middleware.BodyParserValidatorMiddleware(&models.User{}), UpdateOne)
+	usersRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.User{}), UpdateOne)
 	usersRouter.Delete("/:id", DeleteOne)
 
-	usersRouter.Put("/:id/toggle", users.Toggle)
+	usersRouter.Post("/:id/toggle", users.Toggle)
 }

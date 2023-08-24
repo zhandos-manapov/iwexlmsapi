@@ -2,78 +2,73 @@ package users
 
 import (
 	"context"
-	"errors"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 )
 
 func FindMany(c *fiber.Ctx) error {
 	query := `
-		SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, users.is_active, users.role_name
-		FROM users`
+    SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, users.is_active, users.role, role.role_name
+    FROM users
+    INNER JOIN role ON users.role = role.id`
 	rows, err := database.Pool.Query(context.Background(), query)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return err
 	}
 	defer rows.Close()
-
-	users := make([]models.User, 0)
+	var users []models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(
+		err := rows.Scan(
 			&user.Id, &user.FirstName, &user.LastName, &user.Email,
-			&user.ContactNumber, &user.DateOfBirth, &user.IsActive, &user.RoleName,
-		); err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+			&user.ContactNumber, &user.DateOfBirth, &user.IsActive,
+			&user.Role.ID, &user.RoleName,
+		)
+		if err != nil {
+			return err
 		}
 		users = append(users, user)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(users)
-}
+	if err := rows.Err(); err != nil {
+		return err
+	}
 
+	return c.JSON(users)
+}
 func FindOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
-		SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, users.is_active, users.role_name
-		FROM users
-		WHERE (users.id=$1)`
+	SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, users.is_active, users.role, role.role_name
+	FROM users
+	INNER JOIN role ON users.role = role.id
+	WHERE (users.id=$1)`
 	row := database.Pool.QueryRow(context.Background(), query, id)
 
 	var user models.User
 	if err := row.Scan(
 		&user.Id, &user.FirstName, &user.LastName, &user.Email,
-		&user.ContactNumber, &user.DateOfBirth, &user.IsActive, &user.RoleName,
+		&user.ContactNumber, &user.DateOfBirth, &user.IsActive,
+		&user.Role.ID, &user.RoleName,
 	); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "User not found",
-			})
-		}
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	return c.JSON(user)
 }
-
 func CreateOne(c *fiber.Ctx) error {
 	var user models.User
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Error parsing data",
-		})
+	if err := c.Locals("body", &user); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Internal Server Error")
 	}
 
 	emailExistsQuery := `SELECT email FROM users WHERE email = $1`
 	emailCheckRow := database.Pool.QueryRow(context.Background(), emailExistsQuery, user.Email)
 	var existingEmail string
 	if err := emailCheckRow.Scan(&existingEmail); err == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email already exists",
-		})
+		return fiber.NewError(fiber.StatusBadRequest, "Email already exists")
 	}
 
 	query := `
@@ -82,19 +77,17 @@ func CreateOne(c *fiber.Ctx) error {
 	_, err := database.Pool.Exec(context.Background(), query,
 		user.FirstName, user.LastName, user.Email, user.ContactNumber, user.DateOfBirth, user.IsActive, user.RoleName)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return fiber.NewError(fiber.StatusInternalServerError, "Internal Server Error")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User successfully created"})
+	return c.JSON(fiber.Map{"message": "User successfully created"})
 }
 
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var user models.User
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Error parsing data",
-		})
+	if err := c.Locals("body", &user); err != nil {
+		return err.(error)
 	}
 
 	query := `
@@ -103,10 +96,10 @@ func UpdateOne(c *fiber.Ctx) error {
 	_, err := database.Pool.Exec(context.Background(), query,
 		user.FirstName, user.LastName, user.Email, user.ContactNumber, user.DateOfBirth, user.IsActive, user.RoleName, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User successfully updated"})
+	return c.JSON(fiber.Map{"message": "User successfully updated"})
 }
 
 func DeleteOne(c *fiber.Ctx) error {
@@ -114,8 +107,8 @@ func DeleteOne(c *fiber.Ctx) error {
 	query := `DELETE FROM users WHERE id = $1`
 	_, err := database.Pool.Exec(context.Background(), query, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User successfully deleted"})
+	return c.JSON(fiber.Map{"message": "User successfully deleted"})
 }
