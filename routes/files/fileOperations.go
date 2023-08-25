@@ -1,10 +1,10 @@
 package files
 
 import (
-	"io/ioutil"
-	"path"
-
 	"github.com/gofiber/fiber/v2"
+	"io/ioutil"
+	"iwexlmsapi/models"
+	"path"
 )
 
 func readFiles(c *fiber.Ctx) error {
@@ -40,7 +40,7 @@ func searchItem(c *fiber.Ctx) error {
 }
 
 func readFolder(c *fiber.Ctx) error {
-	body := c.Locals("body").(*fileOperationsReqBody)
+	body := c.Locals("body").(*models.FileOperationsReqBody)
 	files, err := ioutil.ReadDir(path.Join(CONTENT_ROOT_PATH, body.Path))
 	if err != nil {
 		return err

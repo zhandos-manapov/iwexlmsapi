@@ -15,5 +15,5 @@ func setupRoutes(app *fiber.App) {
 	auth.SetupAuthRoute(&mainRouter)
 	files.SetupFilesRoute(&mainRouter)
 	level.SetupLevelRoute(mainRouter)
-	course.SetupCourseRouter(mainRouter)
+	course.SetupCourseRouter(&mainRouter)
 }

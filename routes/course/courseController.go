@@ -2,134 +2,118 @@ package course
 
 import (
 	"context"
-	"iwexlmsapi/database"
-	"iwexlmsapi/models"
-
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"iwexlmsapi/database"
+	"iwexlmsapi/models"
+	"strings"
 )
 
 func FindOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT course.name, course.course_id, course.level, course.description, course.agenda, level.level_name
-  FROM course
-  INNER JOIN level ON course.level = level.id
-  WHERE course_id = $1`
-	var course models.Course
-
+	query := `
+	SELECT course.name,
+		course.course_id,
+		course.level,
+		course.description,
+		course.agenda,
+		level.level_name
+	FROM course
+		INNER JOIN level ON course.level = level.id
+	WHERE course_id = $1`
+	course := models.Course{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&course.CourseId, &course.Name, &course.Level, &course.Description, &course.Agenda, &course.LevelName); err != nil {
-		if err == pgx.ErrNoRows {
-			return fiber.NewError(fiber.StatusBadRequest, "Курс не существует")
-		}
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
+		return err
 	}
-
 	return c.JSON(course)
 }
 
 func FindMany(c *fiber.Ctx) error {
-	query := `SELECT course_id, course.name, course.level, course.description, course.agenda, level.level_name 
+	query := `
+	SELECT course_id,
+		course.name,
+		course.level,
+		course.description,
+		course.agenda,
+		level.level_name
 	FROM course
-	INNER JOIN level ON course.level = level.id`
+		INNER JOIN level ON course.level = level.id`
 	rows, err := database.Pool.Query(context.Background(), query)
+	defer rows.Close()
 	if err != nil {
 		return err
 	}
-
-	courses := make([]models.Course, 0)
-	for rows.Next() {
-		var course models.Course
-		if err := rows.Scan(&course.CourseId, &course.Name, &course.Level, &course.Description, &course.Agenda, &course.LevelName); err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
-		}
-		courses = append(courses, course)
+	courses, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Course])
+	if err != nil {
+		return err
 	}
-
-	if len(courses) == 0 {
-		return fiber.NewError(fiber.StatusBadRequest, "Что-то пошло не так")
-	}
-
 	return c.JSON(courses)
 }
 
 func CreateOne(c *fiber.Ctx) error {
-	body := c.Locals("body")
-	course := body.(*models.CourseSend)
-	
-	query := `SELECT course_id FROM course WHERE name = $1`
-	
-	var CourseID int64
-	if err := database.Pool.QueryRow(context.Background(), query, course.Name).Scan(&CourseID); err != nil {
-			if err != pgx.ErrNoRows {
-					return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
-			}
-	} else {
-			return fiber.NewError(fiber.StatusBadRequest, "Курс с таким именем уже существует")
+	course := c.Locals("body").(*models.CourseCreate)
+	query := `
+	INSERT INTO course (name, level, description, agenda)
+	VALUES ($1, $2, $3, $4)`
+	if tag, err := database.Pool.Exec(context.Background(), query, course.Name, course.Level, course.Description, course.Agenda); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
 	}
-	
-	query = `
-			INSERT INTO course (name, level, description, agenda)
-			VALUES ($1, $2, $3, $4)
-	`
-	
-	_, err := database.Pool.Exec(context.Background(), query, course.Agenda, course.Level, course.Description,  course.Name)
-	if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
-	}
-	
-	return c.JSON(models.ServerError{Message: "Курс успешно создан"})
+	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
 }
 
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	body := c.Locals("body")
-	course := body.(*models.CourseSend)
-	
-	existingCourseQuery := `SELECT course_id FROM course WHERE course_id = $1`
-	existingCourseRow := database.Pool.QueryRow(context.Background(), existingCourseQuery, id)
-	
-	var existingCourseID int64
-	if err := existingCourseRow.Scan(&existingCourseID); err != nil {
-			if err == pgx.ErrNoRows {
-					return fiber.NewError(fiber.StatusBadRequest, "Курс не найден")
-			}
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
+	course := c.Locals("body").(*models.CourseUpdate)
+
+	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
-	
-	updateQuery := `
-			UPDATE course
-			SET name = $1, level = $2, description = $3, agenda = $4
-			WHERE course_id = $5
-	`
-	
-	_, err := database.Pool.Exec(context.Background(), updateQuery, course.Name, course.Level, course.Description, course.Agenda, id)
-	if err != nil {
-			return err
+
+	query := strings.Builder{}
+	query.WriteString("UPDATE course SET")
+	queryParams := []any{id}
+
+	if course.Name != "" {
+		query.WriteString(fmt.Sprintf(" name=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, course.Name)
 	}
-	
-	return c.JSON(models.ServerError{Message: "Курс успешно обновлен"})
+
+	if course.Level != 0 {
+		query.WriteString(fmt.Sprintf(" level=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, course.Level)
+	}
+
+	if course.Description != "" {
+		query.WriteString(fmt.Sprintf(" description=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, course.Description)
+	}
+
+	if course.Agenda != "" {
+		query.WriteString(fmt.Sprintf(" agenda=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, course.Agenda)
+	}
+	query.WriteString(" WHERE course_id=$1")
+	queryString := query.String()
+	queryString = queryString[:len(queryString)-1]
+
+	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.NewError(fiber.StatusNotFound, "Курс не найден")
+	}
+	return c.JSON(models.RespMsg{Message: "Курс успешно обновлен"})
 }
 
-
 func DeleteOne(c *fiber.Ctx) error {
-    id := c.Params("id")
-    
-    query := `SELECT course_id FROM course WHERE course_id = $1`
-    
-    var CourseID int64
-    if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&CourseID); err != nil {
-        if err == pgx.ErrNoRows {
-            return fiber.NewError(fiber.StatusBadRequest, "Курс не найден")
-        }
-        return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error: " + err.Error())
-    }
-    
-    query = `DELETE FROM course WHERE course_id = $1`
-    
-    _, err := database.Pool.Exec(context.Background(), query, id)
-    if err != nil {
-        return err
-    }
-    
-    return c.JSON(models.ServerError{Message: "Курс успешно удален"})
+	id := c.Params("id")
+	query := "DELETE FROM course WHERE course_id = $1"
+	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.NewError(fiber.StatusNotFound, "Курс не найден")
+	}
+	return c.JSON(models.RespMsg{Message: "Курс успешно удален"})
 }

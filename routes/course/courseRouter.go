@@ -7,11 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupCourseRouter(router fiber.Router) {
-	localRouter := router.Group("/course")
+func SetupCourseRouter(router *fiber.Router) {
+	localRouter := (*router).Group("/courses")
 	localRouter.Get("/:id", FindOne)
 	localRouter.Get("/", FindMany)
-	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CourseSend{}), CreateOne)
-	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CourseSend{}), UpdateOne)
+	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CourseCreate{}), CreateOne)
+	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CourseUpdate{}), UpdateOne)
 	localRouter.Delete("/:id", DeleteOne)
 }
