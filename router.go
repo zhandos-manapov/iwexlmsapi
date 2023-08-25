@@ -2,6 +2,7 @@ package main
 
 import (
 	"iwexlmsapi/routes/auth"
+	"iwexlmsapi/routes/files"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -9,5 +10,6 @@ import (
 
 func setupRoutes(app *fiber.App) {
 	mainRouter := app.Group("/api/v2", logger.New())
-	auth.SetupAuthRoute(mainRouter)
+	auth.SetupAuthRoute(&mainRouter)
+	files.SetupFilesRoute(&mainRouter)
 }
