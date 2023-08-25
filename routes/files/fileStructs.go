@@ -2,12 +2,6 @@ package files
 
 import "time"
 
-type fileOperationsReqBody struct {
-	Action          string `json:"action"`
-	Path            string `json:"path"`
-	ShowHiddenItems bool   `json:"showHiddenItems"`
-}
-
 type fileStruct struct {
 	Name         string    `json:"name"`
 	Size         string    `json:"size"`
