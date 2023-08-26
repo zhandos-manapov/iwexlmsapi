@@ -67,7 +67,7 @@ func CreateOne(c *fiber.Ctx) error {
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	course := c.Locals("body").(*models.CourseUpdate)
-
+	
 	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
