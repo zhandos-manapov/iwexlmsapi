@@ -6,6 +6,7 @@ import (
 	"iwexlmsapi/routes/country"
 	"iwexlmsapi/routes/course"
 	"iwexlmsapi/routes/files"
+	"iwexlmsapi/routes/lesson"
 	"iwexlmsapi/routes/level"
 	"iwexlmsapi/routes/region"
 
@@ -22,4 +23,5 @@ func setupRoutes(app *fiber.App) {
 	city.SetupCityRouter(&mainRouter)
 	region.SetupRegionRouter(&mainRouter)
 	country.SetupCountryRouter(&mainRouter)
+	lesson.SetupLessonRouter(mainRouter)
 }
