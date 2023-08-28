@@ -2,11 +2,10 @@ package region
 
 import (
 	"context"
-	"iwexlmsapi/database"
-	"iwexlmsapi/models"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"iwexlmsapi/database"
+	"iwexlmsapi/models"
 )
 
 func FindOne(c *fiber.Ctx) error {
@@ -38,9 +37,9 @@ func FindMany(c *fiber.Ctx) error {
 
 func CreateOne(c *fiber.Ctx) error {
 	region := c.Locals("body").(*models.Region)
-	query := "INSERT INTO region (region_name, county_id) VALUES($1, $2)"
+	query := "INSERT INTO region (region_name, country_id) VALUES($1, $2)"
 	if tag, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID); err != nil {
-
+		return err
 	} else if tag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
