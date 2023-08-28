@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `SELECT lesson.lesson_title, lesson.start_time, lesson.end_time, lesson.recurrence_rule, lesson.description, course_cycle.course_code  FROM lesson
   INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
@@ -26,7 +26,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(lesson)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := `SELECT lesson.lesson_title, lesson.start_time, lesson.end_time, lesson.recurrence_rule, lesson.description, course_cycle.course_code  FROM lesson
   INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id`
 	rows, err := database.Pool.Query(context.Background(), query)
@@ -34,12 +34,10 @@ func FindMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
 	lessons, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Lesson])
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(lessons)
 }
 
@@ -53,11 +51,10 @@ func CreateOne(c *fiber.Ctx) error {
 	} else if tag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
-
 	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	lesson := c.Locals("body").(*models.CreateLesson)
 
@@ -108,7 +105,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Урок успешно обновлен"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM lesson WHERE id = $1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {

@@ -9,9 +9,9 @@ import (
 
 func SetupLevelRouter(router *fiber.Router) {
 	levelRouter := (*router).Group("/levels")
-	levelRouter.Get("/:id", FindOne)
-	levelRouter.Get("/", FindMany)
-	levelRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Level{}), CreateOne)
-	levelRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), UpdateOne)
-	levelRouter.Delete("/:id", DeleteOne)
+	levelRouter.Get("/:id", findOne)
+	levelRouter.Get("/", findMany)
+	levelRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Level{}), createOne)
+	levelRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), updateOne)
+	levelRouter.Delete("/:id", deleteOne)
 }
