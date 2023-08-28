@@ -8,9 +8,9 @@ import (
 )
 
 func SetupCityRoutes(router fiber.Router) {
-	cityRouter := router.Group("/city")
+	cityRouter := router.Group("/cities")
 
-	cityRouter.Get("/", FindAll)
+	cityRouter.Get("/", FindMany)
 	cityRouter.Get("/:id", FindOne)
 	cityRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.City{}), CreateOne)
 	cityRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.City{}), UpdateOne)

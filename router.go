@@ -2,10 +2,10 @@ package main
 
 import (
 	"iwexlmsapi/routes/auth"
-	"iwexlmsapi/routes/files"
+	"iwexlmsapi/routes/city"
 	"iwexlmsapi/routes/course"
+	"iwexlmsapi/routes/files"
 	"iwexlmsapi/routes/level"
-	"iwexlmsapi/routes/auth/city"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
