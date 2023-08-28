@@ -10,9 +10,9 @@ import (
 func SetupCountryRouter(router *fiber.Router) {
 	countryRouter := (*router).Group("/countries")
 
-	countryRouter.Get("/:id", FindOne)
-	countryRouter.Get("/", FindMany)
-	countryRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Country{}), CreateOne)
-	countryRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Country{}), UpdateOne)
-	countryRouter.Delete("/:id", DeleteOne)
+	countryRouter.Get("/:id", findOne)
+	countryRouter.Get("/", findMany)
+	countryRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Country{}), createOne)
+	countryRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Country{}), updateOne)
+	countryRouter.Delete("/:id", deleteOne)
 }

@@ -8,7 +8,7 @@ import (
 	"iwexlmsapi/models"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM country WHERE id=$1"
 	country := models.Country{}
@@ -18,7 +18,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(country)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := "SELECT * FROM country"
 	rows, err := database.Pool.Query(context.Background(), query)
 	defer rows.Close()
@@ -32,7 +32,7 @@ func FindMany(c *fiber.Ctx) error {
 	return c.JSON(countries)
 }
 
-func CreateOne(c *fiber.Ctx) error {
+func createOne(c *fiber.Ctx) error {
 	country := c.Locals("body").(*models.Country)
 	query := "INSERT INTO country (country_name) VAlUES ($1)"
 	if tag, err := database.Pool.Exec(context.Background(), query, country.CountryName); err != nil {
@@ -43,7 +43,7 @@ func CreateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Страна успешно создана "})
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	country := c.Locals("body").(*models.Country)
 	if country.CountryName == "" {
@@ -58,7 +58,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Страна успешно обновлена"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM country WHERE id=$1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {

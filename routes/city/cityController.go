@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM city WHERE id=$1"
 	city := models.City{}
@@ -19,7 +19,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(city)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := "SELECT * FROM city"
 	rows, err := database.Pool.Query(context.Background(), query)
 	defer rows.Close()
@@ -36,7 +36,7 @@ func FindMany(c *fiber.Ctx) error {
 	return c.JSON(cities)
 }
 
-func CreateOne(c *fiber.Ctx) error {
+func createOne(c *fiber.Ctx) error {
 	city := c.Locals("body").(*models.City)
 	query := "INSERT INTO city (city_name, region_id) VALUES($1, $2)"
 	if tag, err := database.Pool.Exec(context.Background(), query, city.CityName, city.RegionID); err != nil {
@@ -47,7 +47,7 @@ func CreateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Город успешно добавлен"})
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	city := c.Locals("body").(*models.City)
 	if city.CityName == "" {
@@ -62,7 +62,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Город успешно обновлен"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM city WHERE id=$1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {

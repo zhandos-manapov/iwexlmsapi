@@ -10,9 +10,9 @@ import (
 func SetupCityRouter(router *fiber.Router) {
 	cityRouter := (*router).Group("/cities")
 
-	cityRouter.Get("/", FindMany)
-	cityRouter.Get("/:id", FindOne)
-	cityRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.City{}), CreateOne)
-	cityRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.City{}), UpdateOne)
-	cityRouter.Delete("/:id", DeleteOne)
+	cityRouter.Get("/", findMany)
+	cityRouter.Get("/:id", findOne)
+	cityRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.City{}), createOne)
+	cityRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.City{}), updateOne)
+	cityRouter.Delete("/:id", deleteOne)
 }

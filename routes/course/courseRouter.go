@@ -9,9 +9,9 @@ import (
 
 func SetupCourseRouter(router *fiber.Router) {
 	localRouter := (*router).Group("/courses")
-	localRouter.Get("/:id", FindOne)
-	localRouter.Get("/", FindMany)
-	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CourseCreate{}), CreateOne)
-	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CourseUpdate{}), UpdateOne)
-	localRouter.Delete("/:id", DeleteOne)
+	localRouter.Get("/:id", findOne)
+	localRouter.Get("/", findMany)
+	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CourseCreate{}), createOne)
+	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CourseUpdate{}), updateOne)
+	localRouter.Delete("/:id", deleteOne)
 }

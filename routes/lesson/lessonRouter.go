@@ -9,9 +9,9 @@ import (
 
 func SetupLessonRouter(router fiber.Router) {
 	localRouter := router.Group("/lesson")
-	localRouter.Get("/:id", FindOne)
-	localRouter.Get("/", FindMany)
+	localRouter.Get("/:id", findOne)
+	localRouter.Get("/", findMany)
 	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateLesson{}), CreateOne)
-	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CreateLesson{}), UpdateOne)
-	localRouter.Delete("/:id", DeleteOne)
+	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.CreateLesson{}), updateOne)
+	localRouter.Delete("/:id", deleteOne)
 }
