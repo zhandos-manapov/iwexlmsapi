@@ -11,7 +11,7 @@ import (
 
 const reqBody = "body"
 
-func BodyParserValidatorMiddleware[T models.User | models.UserLog | models.Level | models.CourseSend](data *T) func(c *fiber.Ctx) error {
+func BodyParserValidatorMiddleware[T models.User | models.UserLog | models.Level | models.CourseSend | models.Lesson | models.CreateLesson](data *T) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		if err := c.BodyParser(data); err != nil {
 			return err
