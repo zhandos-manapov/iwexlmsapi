@@ -2,12 +2,11 @@ package auth
 
 import (
 	"context"
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"iwexlmsapi/utils"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 )
 
 func signIn(c *fiber.Ctx) error {
@@ -29,14 +28,16 @@ func signIn(c *fiber.Ctx) error {
 	if !validPass {
 		return fiber.NewError(fiber.StatusUnauthorized, "Неверный пароль")
 	}
-	//issue jwt
-
-	return c.SendString("auth route is working")
+	tokenStruct, err := utils.IssueJWT(&dbUser)
+	if err != nil {
+		return err
+	}
+	return c.JSON(tokenStruct)
 }
 
 func signUp(c *fiber.Ctx) error {
 	body := c.Locals("body")
-	user := body.(*models.User)
+	user := body.(models.User)
 	query := "SELECT email FROM users WHERE email = $1"
 	result, err := database.Pool.Query(context.Background(), query, user.Email)
 	if err != nil {
@@ -63,5 +64,5 @@ func signUp(c *fiber.Ctx) error {
 	if commandTag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.ServerError{Message: "Вы успешно зарегистрированы"})
+	return c.JSON(models.RespMsg{Message: "Вы успешно зарегистрированы"})
 }

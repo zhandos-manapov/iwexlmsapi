@@ -4,6 +4,8 @@ import (
 	"errors"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"iwexlmsapi/routes/files"
+	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
 
@@ -24,6 +26,9 @@ func main() {
 
 	loadEnv()
 
+	utils.InitKeys()
+	files.InitConstants()
+
 	database.ConnectToDB()
 	defer database.DisconnectFromDB()
 
@@ -38,7 +43,7 @@ func main() {
 			if errors.As(err, &e) {
 				code = e.Code
 			}
-			return c.Status(code).JSON(models.ServerError{Message: err.Error()})
+			return c.Status(code).JSON(models.RespMsg{Message: err.Error()})
 		},
 	})
 	app.Use(cors.New(cors.Config{
