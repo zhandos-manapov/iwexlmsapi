@@ -2,50 +2,47 @@ package main
 
 import (
 	"errors"
-	"iwexlmsapi/database"
-	"iwexlmsapi/models"
-	"iwexlmsapi/xvalidator"
-	"log"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
+	"iwexlmsapi/database"
+	"iwexlmsapi/models"
+	"iwexlmsapi/utils"
+	"iwexlmsapi/xvalidator"
+	"log"
 )
 
 func loadEnv() {
- err := godotenv.Load(".env")
- if err != nil {
-  log.Fatalf("Error loading environment variables file")
- }
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading environment variables file")
+	}
 }
 
 func main() {
 
- loadEnv()
+	loadEnv()
 
- database.ConnectToDB()
- defer database.DisconnectFromDB()
+	utils.InitKeys()
 
- validate := validator.New()
- xvalidator.InitValidator(validate)
+	database.ConnectToDB()
+	defer database.DisconnectFromDB()
 
- app := fiber.New(fiber.Config{
-  ErrorHandler: func(c *fiber.Ctx, err error) error {
-   code := fiber.StatusInternalServerError
+	validate := validator.New()
+	xvalidator.InitValidator(validate)
 
-   var e *fiber.Error
-   if errors.As(err, &e) {
-    code = e.Code
-   }
-   return c.Status(code).JSON(models.ServerError{Message: err.Error()})
-  },
- })
- app.Use(cors.New(cors.Config{
-  AllowOrigins: "*",
-  AllowHeaders: "Origin, Content-Type, Accept, Authorization",
- }))
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
 
- setupRoutes(app)
- app.Listen(":3030")
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
+			return c.Status(code).JSON(models.RespMsg{Message: err.Error()})
+		},
+	})
+
+	setupRoutes(app)
+	app.Listen(":3030")
 }

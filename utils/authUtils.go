@@ -9,11 +9,12 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/pbkdf2"
 	"iwexlmsapi/models"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 const iterations = 4096

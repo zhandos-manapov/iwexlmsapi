@@ -37,7 +37,7 @@ func signIn(c *fiber.Ctx) error {
 
 func signUp(c *fiber.Ctx) error {
 	body := c.Locals("body")
-	user := body.(*models.User)
+	user := body.(models.User)
 	query := "SELECT email FROM users WHERE email = $1"
 	result, err := database.Pool.Query(context.Background(), query, user.Email)
 	if err != nil {
@@ -64,5 +64,5 @@ func signUp(c *fiber.Ctx) error {
 	if commandTag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.ServerError{Message: "Вы успешно зарегистрированы"})
+	return c.JSON(models.RespMsg{Message: "Вы успешно зарегистрированы"})
 }
