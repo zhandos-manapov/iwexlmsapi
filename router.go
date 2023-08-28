@@ -2,8 +2,9 @@ package main
 
 import (
 	"iwexlmsapi/routes/auth"
-	"iwexlmsapi/routes/files"
+	"iwexlmsapi/routes/city"
 	"iwexlmsapi/routes/course"
+	"iwexlmsapi/routes/files"
 	"iwexlmsapi/routes/level"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,4 +17,5 @@ func setupRoutes(app *fiber.App) {
 	files.SetupFilesRoute(&mainRouter)
 	level.SetupLevelRoute(mainRouter)
 	course.SetupCourseRouter(&mainRouter)
+	city.SetupCityRoutes(mainRouter)
 }

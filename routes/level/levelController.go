@@ -2,12 +2,10 @@ package level
 
 import (
 	"context"
-	"iwexlmsapi/database"
-	"iwexlmsapi/models"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"iwexlmsapi/database"
+	"iwexlmsapi/models"
 )
 
 func FindOne(c *fiber.Ctx) error {
@@ -30,6 +28,9 @@ func FindMany(c *fiber.Ctx) error {
 	levels, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Level])
 	if err != nil {
 		return err
+	}
+	if len(levels) == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "Уровни не найдены")
 	}
 	return c.JSON(levels)
 }
@@ -57,7 +58,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	} else if tag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
-	return c.Status(http.StatusOK).JSON(models.RespMsg{Message: "Уровень успешно обновлен"})
+	return c.JSON(models.RespMsg{Message: "Уровень успешно обновлен"})
 }
 
 func DeleteOne(c *fiber.Ctx) error {
