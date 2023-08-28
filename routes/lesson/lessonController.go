@@ -3,12 +3,11 @@ package lesson
 import (
 	"context"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"strings"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 )
 
 func FindOne(c *fiber.Ctx) error {
@@ -55,7 +54,7 @@ func CreateOne(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.JSON(models.ServerError{Message: "Курс успешно создан"})
+	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
 }
 
 func UpdateOne(c *fiber.Ctx) error {
@@ -106,7 +105,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	} else if tag.RowsAffected() < 1 {
 		return fiber.NewError(fiber.StatusNotFound, "Урок не найден")
 	}
-	return c.JSON(models.ServerError{Message: "Урок успешно обновлен"})
+	return c.JSON(models.RespMsg{Message: "Урок успешно обновлен"})
 }
 
 func DeleteOne(c *fiber.Ctx) error {
@@ -117,5 +116,5 @@ func DeleteOne(c *fiber.Ctx) error {
 	} else if tag.RowsAffected() < 1 {
 		return fiber.NewError(fiber.StatusNotFound, "Урок не найден")
 	}
-	return c.JSON(models.ServerError{Message: "Урок успешно удален"})
+	return c.JSON(models.RespMsg{Message: "Урок успешно удален"})
 }
