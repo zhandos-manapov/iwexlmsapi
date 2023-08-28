@@ -6,7 +6,7 @@ import (
 	"iwexlmsapi/models"
 )
 
-func SetupAuthRoute(router *fiber.Router) {
+func SetupAuthRouter(router *fiber.Router) {
 	authRouter := (*router).Group("/auth")
 
 	authRouter.Post("/signin", middleware.BodyParserValidatorMiddleware(&models.UserLog{}), signIn)
