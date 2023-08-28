@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupFilesRoute(router *fiber.Router) {
+func SetupFilesRouter(router *fiber.Router) {
 	filesRouter := (*router).Group("/files")
 	filesRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.FileOperationsReqBody{}), fileOperations)
 }
