@@ -7,11 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupLevelRoute(router fiber.Router) {
-	localRouter := router.Group("/levels")
-	localRouter.Get("/:id", FindOne)
-	localRouter.Get("/", FindMany)
-	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Level{}), CreateOne)
-	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), UpdateOne)
-	localRouter.Delete("/:id", DeleteOne)
+func SetupLevelRouter(router *fiber.Router) {
+	levelRouter := (*router).Group("/levels")
+	levelRouter.Get("/:id", FindOne)
+	levelRouter.Get("/", FindMany)
+	levelRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Level{}), CreateOne)
+	levelRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.Level{}), UpdateOne)
+	levelRouter.Delete("/:id", DeleteOne)
 }

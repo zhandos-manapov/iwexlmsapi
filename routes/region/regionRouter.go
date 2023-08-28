@@ -7,11 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupRegionRoutes(router *fiber.Router) {
+func SetupRegionRouter(router *fiber.Router) {
 	regionRouter := (*router).Group("/regions")
 
 	regionRouter.Get("/:id", FindOne)
-	regionRouter.Get("/", FindAll)
+	regionRouter.Get("/", FindMany)
 	regionRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.Region{}), CreateOne)
 	regionRouter.Put("/:id", middleware.BodyParserValidatorMiddleware(&models.Region{}), UpdateOne)
 	regionRouter.Delete("/:id", DeleteOne)

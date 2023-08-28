@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupCityRoutes(router fiber.Router) {
-	cityRouter := router.Group("/cities")
+func SetupCityRouter(router *fiber.Router) {
+	cityRouter := (*router).Group("/cities")
 
 	cityRouter.Get("/", FindMany)
 	cityRouter.Get("/:id", FindOne)

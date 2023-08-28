@@ -12,95 +12,63 @@ import (
 func FindOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM region WHERE id=$1"
-	row := database.Pool.QueryRow(context.Background(), query, id)
-
-	var region models.Region
-	if err := row.Scan(&region.ID, &region.RegionName, &region.CountyID); err != nil {
-		if err == pgx.ErrNoRows {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Регион не найден",
-			})
-		}
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+	region := models.Region{}
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&region.ID, &region.RegionName, &region.CountyID); err != nil {
+		return err
 	}
-
-	return c.Status(fiber.StatusOK).JSON(region)
+	return c.JSON(region)
 }
 
-func FindAll(c *fiber.Ctx) error {
+func FindMany(c *fiber.Ctx) error {
 	query := "SELECT * FROM region"
 	rows, err := database.Pool.Query(context.Background(), query)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
-	}
 	defer rows.Close()
-
-	regions := make([]models.Region, 0)
-	for rows.Next() {
-		var region models.Region
-		if err := rows.Scan(&region.ID, &region.RegionName, &region.CountyID); err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
-		}
-		regions = append(regions, region)
+	if err != nil {
+		return err
 	}
-
+	regions, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Region])
+	if err != nil {
+		return err
+	}
 	if len(regions) == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Регионы не найдены",
-		})
+		return fiber.NewError(fiber.StatusNotFound, "Регионы не найдены")
 	}
-
-	return c.Status(fiber.StatusOK).JSON(regions)
+	return c.JSON(regions)
 }
 
 func CreateOne(c *fiber.Ctx) error {
-	var region models.Region
-	if err := c.BodyParser(&region); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Ошибка разбора данных",
-		})
-	}
-
+	region := c.Locals("body").(*models.Region)
 	query := "INSERT INTO region (region_name, county_id) VALUES($1, $2)"
-	_, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Данное название уже существует",
-		})
-	}
+	if tag, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID); err != nil {
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Регион успешно добавлен"})
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
+	}
+	return c.JSON(models.RespMsg{Message: "Регион успешно добавлен"})
 }
 
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var region models.Region
-	if err := c.BodyParser(&region); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Ошибка разбора данных",
-		})
+	region := c.Locals("body").(*models.Region)
+	if region.RegionName == "" && region.CountyID == 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
-
 	query := "UPDATE region SET region_name=$1, county_id=$2 WHERE id=$3"
-	_, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID, id)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Ошибка в изменениях данных",
-		})
+	if tag, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID, id); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
 	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Успешно обновлено"})
+	return c.JSON(models.RespMsg{Message: "Регион успешно обновлен"})
 }
 
 func DeleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM region WHERE id=$1"
-	_, err := database.Pool.Exec(context.Background(), query, id)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Ошибка при удалении региона",
-		})
+	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
 	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Регион успешно удален"})
+	return c.JSON(models.RespMsg{Message: "Регион успешно удален"})
 }
