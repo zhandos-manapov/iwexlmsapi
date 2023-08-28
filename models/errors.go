@@ -7,6 +7,6 @@ type ErrorResponse struct {
 	Value       interface{}
 }
 
-type ServerError struct {
+type RespMsg struct {
 	Message string `json:"message"`
 }
