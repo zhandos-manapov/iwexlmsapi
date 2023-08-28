@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"iwexlmsapi/routes/auth"
 	"iwexlmsapi/routes/city"
 	"iwexlmsapi/routes/country"
@@ -8,12 +10,7 @@ import (
 	"iwexlmsapi/routes/files"
 	"iwexlmsapi/routes/level"
 	"iwexlmsapi/routes/region"
-
-	"iwexlmsapi/routes/auth"
 	"iwexlmsapi/routes/users"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func setupRoutes(app *fiber.App) {
@@ -25,5 +22,5 @@ func setupRoutes(app *fiber.App) {
 	city.SetupCityRouter(&mainRouter)
 	region.SetupRegionRouter(&mainRouter)
 	country.SetupCountryRouter(&mainRouter)
-	users.SetupUsersRoutes(&mainRouter)
+	users.SetupUserRouter(&mainRouter)
 }

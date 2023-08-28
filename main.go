@@ -2,24 +2,16 @@ package main
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"iwexlmsapi/routes/files"
 	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/joho/godotenv"
-
-	"github.com/go-playground/validator/v10"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-
-	"github.com/joho/godotenv"
 )
 
 func loadEnv() {
