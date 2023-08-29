@@ -20,13 +20,12 @@ type UserLog struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type UserUpdate struct {
+type UpdateUser struct {
 	FirstName     string `json:"first_name" validate:"min=2,max=20"`
 	LastName      string `json:"last_name" validate:"min=2,max=20"`
 	Email         string `json:"email" validate:"email"`
 	ContactNumber string `json:"contact_number" validate:"len=10"`
 	DateOfBirth   string `json:"date_of_birth" validate:"datetime=2006-01-02"`
 	Role          byte   `json:"role"`
-	RoleName      string `json:"role_name"`
 	IsActive      bool   `json:"is_active"`
 }

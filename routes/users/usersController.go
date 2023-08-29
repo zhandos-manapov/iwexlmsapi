@@ -2,13 +2,16 @@ package users
 
 import (
 	"context"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
+	"fmt"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
 	SELECT users.id,
@@ -25,6 +28,7 @@ func FindOne(c *fiber.Ctx) error {
 	WHERE (users.id = $1)`
 	user := models.User{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&user.Id,
 		&user.FirstName,
 		&user.LastName,
 		&user.Email,
@@ -39,7 +43,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := `
 	SELECT users.id,
 		users.first_name,
@@ -57,7 +61,6 @@ func FindMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
 	users, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.User])
 	if err != nil {
 		return err
@@ -68,32 +71,77 @@ func FindMany(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var user models.User
-	if err := c.Locals("body", &user); err != nil {
-		return err.(error)
+	user := c.Locals("body").(*models.UpdateUser)
+
+	if (*user == models.UpdateUser{}) {
+		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 
-	query := `
-        UPDATE users SET first_name=$1, last_name=$2, email=$3, contact_number=$4, date_of_birth=$5, is_active=$6, role_name=$7
-        WHERE id=$8`
-	_, err := database.Pool.Exec(context.Background(), query,
-		user.FirstName, user.LastName, user.Email, user.ContactNumber, user.DateOfBirth, user.IsActive, user.RoleName, id)
-	if err != nil {
+	isActive := false
+	q := "SELECT is_active FROM users WHERE id = $1"
+	if err := database.Pool.QueryRow(context.Background(), q, id).Scan(&isActive); err != nil {
 		return err
 	}
 
-	return c.JSON(fiber.Map{"message": "User successfully updated"})
+	query := strings.Builder{}
+	query.WriteString("UPDATE users SET")
+	queryParams := []any{id}
+
+	if user.FirstName != "" {
+		query.WriteString(fmt.Sprintf(" first_name=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.FirstName)
+	}
+
+	if user.LastName != "" {
+		query.WriteString(fmt.Sprintf(" last_name=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.LastName)
+	}
+
+	if user.ContactNumber != "" {
+		query.WriteString(fmt.Sprintf(" contact_number=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.ContactNumber)
+	}
+
+	if user.DateOfBirth != "" {
+		query.WriteString(fmt.Sprintf(" date_of_birth=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.DateOfBirth)
+	}
+
+	if user.Email != "" {
+		query.WriteString(fmt.Sprintf(" email=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.Email)
+	}
+
+	if user.Role != 0 {
+		query.WriteString(fmt.Sprintf(" role=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.Role)
+	}
+
+	if user.IsActive != isActive {
+		query.WriteString(fmt.Sprintf(" is_active=$%d,", len(queryParams)+1))
+		queryParams = append(queryParams, user.Role)
+	}
+	query.WriteString(" WHERE id=$1")
+	queryString := query.String()
+	queryString = queryString[:len(queryString)-1]
+
+	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.NewError(fiber.StatusNotFound, "Пользователь не найден")
+	}
+	return c.JSON(models.RespMsg{Message: "Данные пользователя успешно обновлены"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `DELETE FROM users WHERE id = $1`
-	_, err := database.Pool.Exec(context.Background(), query, id)
-	if err != nil {
+	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {
 		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.NewError(fiber.StatusNotFound, "Пользователь не найден")
 	}
-
-	return c.JSON(fiber.Map{"message": "User successfully deleted"})
+	return c.JSON(models.RespMsg{Message: "Пользователь успешно удален "})
 }

@@ -15,13 +15,13 @@ type reqBodyType interface {
 	models.User |
 		models.UserLog |
 		models.Level |
-		models.CourseCreate |
-		models.CourseUpdate |
+		models.CreateCourse |
+		models.UpdateCourse |
 		models.FileOperationsReqBody |
 		models.City |
 		models.Region |
 		models.Country |
-		models.UserUpdate
+		models.UpdateUser
 }
 
 func BodyParserValidatorMiddleware[T reqBodyType](data *T) func(c *fiber.Ctx) error {

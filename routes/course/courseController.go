@@ -23,7 +23,13 @@ func FindOne(c *fiber.Ctx) error {
 		INNER JOIN level ON course.level = level.id
 	WHERE course_id = $1`
 	course := models.Course{}
-	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&course.CourseId, &course.Name, &course.Level, &course.Description, &course.Agenda, &course.LevelName); err != nil {
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&course.Name, 
+		&course.CourseId, 
+		&course.Level, 
+		&course.Description, 
+		&course.Agenda, 
+		&course.LevelName); err != nil {
 		return err
 	}
 	return c.JSON(course)
@@ -52,7 +58,7 @@ func FindMany(c *fiber.Ctx) error {
 }
 
 func CreateOne(c *fiber.Ctx) error {
-	course := c.Locals("body").(*models.CourseCreate)
+	course := c.Locals("body").(*models.CreateCourse)
 	query := `
 	INSERT INTO course (name, level, description, agenda)
 	VALUES ($1, $2, $3, $4)`
@@ -66,7 +72,7 @@ func CreateOne(c *fiber.Ctx) error {
 
 func UpdateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	course := c.Locals("body").(*models.CourseUpdate)
+	course := c.Locals("body").(*models.UpdateCourse)
 	
 	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
