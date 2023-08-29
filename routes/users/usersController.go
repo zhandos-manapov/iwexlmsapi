@@ -26,7 +26,7 @@ func findOne(c *fiber.Ctx) error {
 	FROM users
 		INNER JOIN role ON users.role = role.id
 	WHERE (users.id = $1)`
-	user := models.User{}
+	user := models.UserDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
 		&user.Id,
 		&user.FirstName,
@@ -61,7 +61,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	users, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.User])
+	users, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[models.UserDB])
 	if err != nil {
 		return err
 	}
@@ -73,9 +73,9 @@ func findMany(c *fiber.Ctx) error {
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user := c.Locals("body").(*models.UpdateUser)
+	user := c.Locals("body").(*models.UpdateUserDTO)
 
-	if (*user == models.UpdateUser{}) {
+	if (*user == models.UpdateUserDTO{}) {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 
@@ -121,11 +121,14 @@ func updateOne(c *fiber.Ctx) error {
 
 	if user.IsActive != isActive {
 		query.WriteString(fmt.Sprintf(" is_active=$%d,", len(queryParams)+1))
-		queryParams = append(queryParams, user.Role)
+		queryParams = append(queryParams, user.IsActive)
 	}
-	query.WriteString(" WHERE id=$1")
+
 	queryString := query.String()
 	queryString = queryString[:len(queryString)-1]
+	queryString += " WHERE id=$1"
+
+	fmt.Println(queryString)
 
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
