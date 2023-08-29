@@ -61,7 +61,7 @@ type tokenStruct struct {
 	ExpiresIn string `json:"expiresIn"`
 }
 
-func IssueJWT(user *models.User) (*tokenStruct, error) {
+func IssueJWT(user *models.UserDB) (*tokenStruct, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = user.Email

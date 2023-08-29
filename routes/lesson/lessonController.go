@@ -12,12 +12,28 @@ import (
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT lesson.lesson_title, lesson.start_time, lesson.end_time, lesson.recurrence_rule, lesson.description, course_cycle.course_code  FROM lesson
-  INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
-  WHERE lesson.id = $1`
-	lesson := models.Lesson{}
+	query := `
+	SELECT lesson.lesson_title,
+		lesson.cycle_id,
+		lesson.start_time,
+		lesson.end_time,
+		COALESCE(lesson.recurrence_rule, '') as recurrence_rule,
+		COALESCE(lesson.description, '') as description,
+		course_cycle.course_code
+	FROM lesson
+		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
+	WHERE lesson.id = $1`
+	lesson := models.LessonDB{}
 
-	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&lesson.LessonTitle, &lesson.StartTime, &lesson.EndTime, &lesson.Description, &lesson.CourseCode); err != nil {
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&lesson.LessonTitle,
+		&lesson.CycleId,
+		&lesson.StartTime,
+		&lesson.EndTime,
+		&lesson.RecurrenceRule,
+		&lesson.Description,
+		&lesson.CourseCode,
+	); err != nil {
 		if err == pgx.ErrNoRows {
 			return fiber.NewError(fiber.StatusBadRequest, "Урок не найден")
 		}
@@ -27,26 +43,50 @@ func findOne(c *fiber.Ctx) error {
 }
 
 func findMany(c *fiber.Ctx) error {
-	query := `SELECT lesson.lesson_title, lesson.start_time, lesson.end_time, lesson.recurrence_rule, lesson.description, course_cycle.course_code  FROM lesson
-  INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id`
+	query := `
+	SELECT lesson.lesson_title,
+		lesson.cycle_id,
+		lesson.start_time,
+		lesson.end_time,
+		COALESCE(lesson.description, '') as description,
+		COALESCE(lesson.recurrence_rule, '') as recurrence_rule,
+		course_cycle.course_code
+	FROM lesson
+		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id`
 	rows, err := database.Pool.Query(context.Background(), query)
 	defer rows.Close()
 	if err != nil {
 		return err
 	}
-	lessons, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Lesson])
+	lessons, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[models.LessonDB])
 	if err != nil {
 		return err
 	}
 	return c.JSON(lessons)
 }
 
-func CreateOne(c *fiber.Ctx) error {
-	lesson := c.Locals("body").(*models.CreateLesson)
-	query := `INSERT INTO lesson(cycle_id, lesson_title, start_time, end_time, description, recurrence_rule)
+func createOne(c *fiber.Ctx) error {
+	lesson := c.Locals("body").(*models.CreateLessonDTO)
+	query := `
+	INSERT INTO lesson(
+    cycle_id,
+    lesson_title,
+    start_time,
+    end_time,
+    description,
+    recurrence_rule
+  )
 	VALUES($1, $2, $3, $4, $5, $6)`
-	fmt.Println(lesson)
-	if tag, err := database.Pool.Exec(context.Background(), query, lesson.CycleId, lesson.LessonTitle, lesson.StartTime, lesson.EndTime, lesson.Description, lesson.RecurrenceRule); err != nil {
+	if tag, err := database.Pool.Exec(
+		context.Background(),
+		query,
+		lesson.CycleId,
+		lesson.LessonTitle,
+		lesson.StartTime,
+		lesson.EndTime,
+		lesson.Description,
+		lesson.RecurrenceRule,
+	); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
@@ -56,17 +96,17 @@ func CreateOne(c *fiber.Ctx) error {
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	lesson := c.Locals("body").(*models.CreateLesson)
+	lesson := c.Locals("body").(*models.UpdateLessonDTO)
 
-	if lesson.CycleId == "" && lesson.LessonTitle == "" && lesson.StartTime == "" && lesson.EndTime == "" && lesson.RecurrenceRule == "" && lesson.Description == "" {
+	if (*lesson == models.UpdateLessonDTO{}) {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления урока")
 	}
 
 	query := strings.Builder{}
-	query.WriteString("UPDATE lesson SET ")
+	query.WriteString("UPDATE lesson SET")
 	queryParams := []any{id}
 
-	if lesson.CycleId != "" {
+	if lesson.CycleId != 0 {
 		query.WriteString(fmt.Sprintf(" cycle_id=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, lesson.CycleId)
 	}
@@ -92,12 +132,14 @@ func updateOne(c *fiber.Ctx) error {
 	}
 
 	if lesson.Description != "" {
-		query.WriteString(fmt.Sprintf(" description=$%d", len(queryParams)+1))
+		query.WriteString(fmt.Sprintf(" description=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, lesson.Description)
 	}
-	query.WriteString(" WHERE id=$1")
+	queryString := query.String()
+	queryString = queryString[:len(queryString)-1]
+	queryString += " WHERE id=$1"
 
-	if tag, err := database.Pool.Exec(context.Background(), query.String(), queryParams...); err != nil {
+	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {
 		return fiber.NewError(fiber.StatusNotFound, "Урок не найден")

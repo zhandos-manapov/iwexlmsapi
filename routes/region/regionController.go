@@ -11,7 +11,7 @@ import (
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM region WHERE id=$1"
-	region := models.Region{}
+	region := models.RegionDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&region.ID, &region.RegionName, &region.CountyID); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	regions, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Region])
+	regions, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.RegionDB])
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	region := c.Locals("body").(*models.Region)
+	region := c.Locals("body").(*models.CreateRegionDTO)
 	query := "INSERT INTO region (region_name, country_id) VALUES($1, $2)"
 	if tag, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID); err != nil {
 		return err
@@ -48,7 +48,7 @@ func createOne(c *fiber.Ctx) error {
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	region := c.Locals("body").(*models.Region)
+	region := c.Locals("body").(*models.UpdateRegionDTO)
 	if region.RegionName == "" && region.CountyID == 0 {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}

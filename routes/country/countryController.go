@@ -11,7 +11,7 @@ import (
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM country WHERE id=$1"
-	country := models.Country{}
+	country := models.CountryDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&country.ID, &country.CountryName); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	countries, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Country])
+	countries, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.CountryDB])
 	if len(countries) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Страны не найдены")
 	}
@@ -33,7 +33,7 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	country := c.Locals("body").(*models.Country)
+	country := c.Locals("body").(*models.CreateCountryDTO)
 	query := "INSERT INTO country (country_name) VAlUES ($1)"
 	if tag, err := database.Pool.Exec(context.Background(), query, country.CountryName); err != nil {
 		return err
@@ -45,7 +45,7 @@ func createOne(c *fiber.Ctx) error {
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	country := c.Locals("body").(*models.Country)
+	country := c.Locals("body").(*models.UpdateCountryDTO)
 	if country.CountryName == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}

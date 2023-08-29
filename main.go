@@ -4,6 +4,7 @@ import (
 	"errors"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"iwexlmsapi/routes/files"
 	"iwexlmsapi/utils"
 	"iwexlmsapi/xvalidator"
 	"log"
@@ -26,7 +27,7 @@ func main() {
 	loadEnv()
 
 	utils.InitKeys()
-
+	files.InitConstants()
 	database.ConnectToDB()
 	defer database.DisconnectFromDB()
 

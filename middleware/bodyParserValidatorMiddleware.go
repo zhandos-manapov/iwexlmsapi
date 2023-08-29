@@ -12,18 +12,21 @@ import (
 const reqBody = "body"
 
 type reqBodyType interface {
-	models.User |
-		models.UserLog |
+	models.UserSignInDTO |
+		models.UserSignUpDTO |
 		models.Level |
-		models.CourseCreate |
-		models.CourseUpdate |
+		models.CreateCourse |
+		models.UpdateCourse |
 		models.FileOperationsReqBody |
 		models.City |
-		models.Region |
-		models.Country |
-		models.CreateLesson |
+		models.CreateRegionDTO |
+		models.UpdateRegionDTO |
+		models.CreateCountryDTO |
+		models.UpdateCountryDTO |
+		models.UpdateUserDTO |
 		models.CreateClass |
-		models.UpdateClass
+		models.CreateLessonDTO |
+		models.UpdateLessonDTO
 }
 
 func BodyParserValidatorMiddleware[T reqBodyType](data *T) func(c *fiber.Ctx) error {

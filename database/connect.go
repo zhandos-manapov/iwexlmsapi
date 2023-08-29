@@ -10,8 +10,13 @@ import (
 var Pool *pgxpool.Pool
 
 func ConnectToDB() {
-	psqlInfo := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"), os.Getenv("PGHOST"), os.Getenv("PGPORT"), os.Getenv("PGNAME"),
+	psqlInfo := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
+		os.Getenv("PGUSER"),
+		os.Getenv("PGPASSWORD"),
+		os.Getenv("PGHOST"),
+		os.Getenv("PGPORT"),
+		os.Getenv("PGNAME"),
 	)
 	var err error
 	Pool, err = pgxpool.New(context.Background(), psqlInfo)

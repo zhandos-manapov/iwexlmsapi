@@ -9,14 +9,14 @@ type Course struct {
 	LevelName   string `json:"level_name" db:"level_name"`
 }
 
-type CourseCreate struct {
+type CreateCourse struct {
 	Agenda      string `json:"agenda"`
 	Level       string `json:"level" validate:"required"`
 	Description string `json:"description"`
 	Name        string `json:"name" validate:"required,min=2"`
 }
 
-type CourseUpdate struct {
+type UpdateCourse struct {
 	Agenda      string `json:"agenda"`
 	Level       int    `json:"level"`
 	Description string `json:"description"`
