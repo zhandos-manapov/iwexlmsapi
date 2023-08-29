@@ -21,7 +21,9 @@ type reqBodyType interface {
 		models.City |
 		models.Region |
 		models.Country |
-		models.UpdateUser
+		models.UpdateUser |
+		models.CreateLesson |
+		models.CreateClass
 }
 
 func BodyParserValidatorMiddleware[T reqBodyType](data *T) func(c *fiber.Ctx) error {

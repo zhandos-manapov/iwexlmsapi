@@ -58,7 +58,7 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	course := c.Locals("body").(*models.CourseCreate)
+	course := c.Locals("body").(*models.CreateCourse)
 	query := `
 	INSERT INTO course (name, level, description, agenda)
 	VALUES ($1, $2, $3, $4)`
@@ -72,7 +72,7 @@ func createOne(c *fiber.Ctx) error {
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	course := c.Locals("body").(*models.CourseUpdate)
+	course := c.Locals("body").(*models.UpdateCourse)
 
 	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
