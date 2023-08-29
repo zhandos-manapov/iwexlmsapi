@@ -11,6 +11,6 @@ func SetupUserRouter(router *fiber.Router) {
 
 	usersRouter.Get("/", findMany)
 	usersRouter.Get("/:id", findOne)
-	usersRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateUser{}), updateOne)
+	usersRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateUserDTO{}), updateOne)
 	usersRouter.Delete("/:id", deleteOne)
 }

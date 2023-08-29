@@ -193,9 +193,9 @@ func updateOne(c *fiber.Ctx) error {
 		query.WriteString(fmt.Sprintf(" course_code=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, class.CourseCode)
 	}
-	query.WriteString(" WHERE id=$1")
 	queryString := query.String()
 	queryString = queryString[:len(queryString)-1]
+	queryString += " WHERE id=$1"
 
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err

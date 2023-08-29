@@ -24,11 +24,11 @@ func findOne(c *fiber.Ctx) error {
 	WHERE course_id = $1`
 	course := models.Course{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
-		&course.Name, 
-		&course.CourseId, 
-		&course.Level, 
-		&course.Description, 
-		&course.Agenda, 
+		&course.Name,
+		&course.CourseId,
+		&course.Level,
+		&course.Description,
+		&course.Agenda,
 		&course.LevelName); err != nil {
 		return err
 	}
@@ -101,9 +101,9 @@ func updateOne(c *fiber.Ctx) error {
 		query.WriteString(fmt.Sprintf(" agenda=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, course.Agenda)
 	}
-	query.WriteString(" WHERE course_id=$1")
 	queryString := query.String()
 	queryString = queryString[:len(queryString)-1]
+	queryString += " WHERE course_id=$1"
 
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
