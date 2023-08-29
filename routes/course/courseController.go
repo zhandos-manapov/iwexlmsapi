@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
 	SELECT course.name,
@@ -35,7 +35,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(course)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := `
 	SELECT course_id,
 		course.name,
@@ -57,8 +57,8 @@ func FindMany(c *fiber.Ctx) error {
 	return c.JSON(courses)
 }
 
-func CreateOne(c *fiber.Ctx) error {
-	course := c.Locals("body").(*models.CreateCourse)
+func createOne(c *fiber.Ctx) error {
+	course := c.Locals("body").(*models.CourseCreate)
 	query := `
 	INSERT INTO course (name, level, description, agenda)
 	VALUES ($1, $2, $3, $4)`
@@ -70,10 +70,10 @@ func CreateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	course := c.Locals("body").(*models.UpdateCourse)
-	
+	course := c.Locals("body").(*models.CourseUpdate)
+
 	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
@@ -113,7 +113,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Курс успешно обновлен"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM course WHERE course_id = $1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {

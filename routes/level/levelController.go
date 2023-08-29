@@ -8,7 +8,7 @@ import (
 	"iwexlmsapi/models"
 )
 
-func FindOne(c *fiber.Ctx) error {
+func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM level WHERE id=$1"
 	level := models.Level{}
@@ -18,7 +18,7 @@ func FindOne(c *fiber.Ctx) error {
 	return c.JSON(level)
 }
 
-func FindMany(c *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := "SELECT * FROM level"
 	rows, err := database.Pool.Query(context.Background(), query)
 	defer rows.Close()
@@ -35,7 +35,7 @@ func FindMany(c *fiber.Ctx) error {
 	return c.JSON(levels)
 }
 
-func CreateOne(c *fiber.Ctx) error {
+func createOne(c *fiber.Ctx) error {
 	level := c.Locals("body").(*models.Level)
 	query := "INSERT INTO level (level_name) VALUES($1)"
 	if tag, err := database.Pool.Exec(context.Background(), query, level.LevelName); err != nil {
@@ -46,7 +46,7 @@ func CreateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Уровень успешно создан"})
 }
 
-func UpdateOne(c *fiber.Ctx) error {
+func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	level := c.Locals("body").(*models.Level)
 	if level.LevelName == "" {
@@ -61,7 +61,7 @@ func UpdateOne(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Уровень успешно обновлен"})
 }
 
-func DeleteOne(c *fiber.Ctx) error {
+func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "DELETE FROM level WHERE id=$1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {
