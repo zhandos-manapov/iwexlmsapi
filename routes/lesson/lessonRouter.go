@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupLessonRouter(router fiber.Router) {
-	localRouter := router.Group("/lesson")
+func SetupLessonRouter(router *fiber.Router) {
+	localRouter := (*router).Group("/lessons")
 	localRouter.Get("/:id", findOne)
 	localRouter.Get("/", findMany)
 	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateLesson{}), CreateOne)

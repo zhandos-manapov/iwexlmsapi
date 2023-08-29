@@ -1,9 +1,10 @@
 package class
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/middleware"
 	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupClassRoutes(router *fiber.Router) {
@@ -11,8 +12,7 @@ func SetupClassRoutes(router *fiber.Router) {
 	classRouter.Get("/", findMany)
 	classRouter.Get("/:id", findOne)
 	classRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateClass{}), createOne)
-	classRouter.Patch("/:id", updateOne)
+	classRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateClass{}), updateOne)
 	classRouter.Delete("/:id", deleteOne)
 	classRouter.Get("/:id/people", getEnrollment)
-	// classRouter.Post("/:id/people", addEnrollment)
 }
