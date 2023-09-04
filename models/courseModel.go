@@ -1,6 +1,6 @@
 package models
 
-type Course struct {
+type CourseDB struct {
 	CourseId    string `json:"course_id" db:"course_id"`
 	Name        string `json:"name" db:"name"`
 	Level       string `json:"level" db:"level"`
@@ -9,14 +9,15 @@ type Course struct {
 	LevelName   string `json:"level_name" db:"level_name"`
 }
 
-type CreateCourse struct {
+type CreateCourseDTO struct {
+	ID          int    `json:"id"`
 	Agenda      string `json:"agenda"`
 	Level       string `json:"level" validate:"required"`
 	Description string `json:"description"`
 	Name        string `json:"name" validate:"required,min=2"`
 }
 
-type UpdateCourse struct {
+type UpdateCourseDTO struct {
 	Agenda      string `json:"agenda"`
 	Level       int    `json:"level"`
 	Description string `json:"description"`

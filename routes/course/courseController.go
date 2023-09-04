@@ -22,7 +22,7 @@ func findOne(c *fiber.Ctx) error {
 	FROM course
 		INNER JOIN level ON course.level = level.id
 	WHERE course_id = $1`
-	course := models.Course{}
+	course := models.CourseDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
 		&course.Name,
 		&course.CourseId,
@@ -50,7 +50,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	courses, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Course])
+	courses, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.CourseDB])
 	if err != nil {
 		return err
 	}
@@ -58,21 +58,27 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	course := c.Locals("body").(*models.CreateCourse)
+	course := c.Locals("body").(*models.CreateCourseDTO)
 	query := `
 	INSERT INTO course (name, level, description, agenda)
-	VALUES ($1, $2, $3, $4)`
-	if tag, err := database.Pool.Exec(context.Background(), query, course.Name, course.Level, course.Description, course.Agenda); err != nil {
+	VALUES ($1, $2, $3, $4)
+	RETURNING id`
+	if err := database.Pool.QueryRow(
+		context.Background(),
+		query,
+		course.Name,
+		course.Level,
+		course.Description,
+		course.Agenda,
+	).Scan(&course.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
+	return c.JSON(course)
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	course := c.Locals("body").(*models.UpdateCourse)
+	course := c.Locals("body").(*models.UpdateCourseDTO)
 
 	if course.Name == "" && course.Level == 0 && course.Description == "" && course.Agenda == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")

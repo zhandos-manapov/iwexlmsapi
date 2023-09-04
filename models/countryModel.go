@@ -1,6 +1,7 @@
 package models
 
 type CreateCountryDTO struct {
+	ID          int    `json:"id"`
 	CountryName string `json:"country_name" validate:"required,min=2"`
 }
 

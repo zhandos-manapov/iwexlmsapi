@@ -14,19 +14,24 @@ const reqBody = "body"
 type reqBodyType interface {
 	models.UserSignInDTO |
 		models.UserSignUpDTO |
-		models.Level |
-		models.CreateCourse |
-		models.UpdateCourse |
+		models.CreateCourseDTO |
+		models.UpdateCourseDTO |
 		models.FileOperationsReqBody |
-		models.City |
 		models.CreateRegionDTO |
 		models.UpdateRegionDTO |
 		models.CreateCountryDTO |
 		models.UpdateCountryDTO |
 		models.UpdateUserDTO |
-		models.CreateClass |
 		models.CreateLessonDTO |
-		models.UpdateLessonDTO
+		models.UpdateLessonDTO |
+		models.UpdateBranchDTO |
+		models.CreateBranchDTO |
+		models.CreateCityDTO |
+		models.UpdateCityDTO |
+		models.CreateLevelDTO |
+		models.UpdateLevelDTO |
+		models.UpdateClassDTO |
+		models.CreateClassDTO
 }
 
 func BodyParserValidatorMiddleware[T reqBodyType](data *T) func(c *fiber.Ctx) error {
