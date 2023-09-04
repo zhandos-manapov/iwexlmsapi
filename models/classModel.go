@@ -2,12 +2,24 @@ package models
 
 import "time"
 
-type Enrollment struct {
-	CycleID            int    `json:"cycle_id" db:"cycle_id"`
-	StudentID          int    `json:"student_id" db:"student_id"`
-	EnrollmentDate     string `json:"enrollment_date" db:"enrollment_date"`
-	Cancelled          bool   `json:"cancelled" db:"cancelled"`
-	CancellationReason string `json:"cancellation_reason" db:"cancellation_reason"`
+type EnrolledStudent struct {
+	CycleID            int       `json:"cycle_id" db:"cycle_id"`
+	StudentID          int       `json:"student_id" db:"student_id"`
+	EnrollmentDate     time.Time `json:"enrollment_date" db:"enrollment_date"`
+	Cancelled          bool      `json:"cancelled" db:"cancelled"`
+	CancellationReason string    `json:"cancellation_reason" db:"cancellation_reason"`
+	FirstName          string    `json:"first_name" db:"first_name"`
+	LastName           string    `json:"last_name" db:"last_name"`
+	Email              string    `json:"email" db:"email"`
+	ContactNumber      string    `json:"contact_number" db:"contact_number"`
+	DateOfBirth        time.Time `json:"date_of_birth" db:"date_of_birth"`
+	Role               byte      `json:"role" db:"role"`
+	RoleName           string    `json:"role_name" db:"role_name"`
+	IsActive           bool      `json:"is_active" db:"is_active"`
+}
+
+type EnrollStudentsDTO struct {
+	Students []int `json:"students"`
 }
 
 type ClassDB struct {

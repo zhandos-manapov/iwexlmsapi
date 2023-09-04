@@ -13,6 +13,6 @@ func SetupClassRouter(router *fiber.Router) {
 	classRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateClassDTO{}), createOne)
 	classRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateClassDTO{}), updateOne)
 	classRouter.Delete("/:id", deleteOne)
-	classRouter.Get("/:id/people", getEnrollment)
-	// classRouter.Post("/:id/people", addEnrollment)
+	classRouter.Get("/:id/people", getEnrolledStudents)
+	classRouter.Post("/:id/people", middleware.BodyParserValidatorMiddleware(&models.EnrollStudentsDTO{}), enrollStudents)
 }

@@ -3,66 +3,80 @@ package class
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"strconv"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 )
 
-func getEnrollment(c *fiber.Ctx) error {
+func getEnrolledStudents(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
-	SELECT e.*, u.*
-	FROM enrollment AS e
-		INNER JOIN users AS u ON e.student_id = u.id
-	WHERE e.cycle_id = $1`
+	SELECT enrolled_student.*,
+  	role.role_name
+	FROM (
+    SELECT e.cycle_id,
+      e.student_id,
+      e.enrollment_date,
+      e.cancelled,
+      COALESCE(e.cancellation_reason, '') AS cancellation_reason,
+      u.first_name,
+      u.last_name,
+      u.email,
+      u.contact_number,
+      u.date_of_birth,
+      u.role,
+      u.is_active
+    FROM enrollment AS e
+      INNER JOIN users AS u ON e.student_id = u.id
+    WHERE e.cycle_id = $1
+  ) AS enrolled_student
+  INNER JOIN role ON enrolled_student.role = role.id`
 	rows, err := database.Pool.Query(context.Background(), query, id)
 	defer rows.Close()
 	if err != nil {
 		return err
 	}
-	enrollments, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Enrollment])
+	enrollments, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.EnrolledStudent])
 	if err != nil {
 		return err
 	}
 	return c.JSON(enrollments)
 }
 
-// func addEnrollment(c *fiber.Ctx) error {
-// 	id := c.Params("id")
-// 	var requestBody struct {
-// 		Users []int `json:"users"`
-// 	}
-// 	if err := ctx.BodyParser(&requestBody); err != nil {
-// 		return ctx.Status(fiber.StatusBadRequest).JSON(map[string]string{"error": "Invalid request format"})
-// 	}
+func enrollStudents(c *fiber.Ctx) error {
+	id := c.Params("id")
+	idInt, err := strconv.ParseInt(id, 10, 0)
+	if err != nil {
+		return err
+	}
+	students := c.Locals("body").(*models.EnrollStudentsDTO)
 
-// 	tx, err := db.Begin()
-// 	if err != nil {
-// 		return ctx.Status(fiber.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
-// 	}
-// 	defer tx.Rollback()
+	query := strings.Builder{}
+	query.WriteString("INSERT INTO enrollment (cycle_id, student_id) VALUES ")
 
-// 	stmt, err := tx.Prepare("INSERT INTO enrollment (cycle_id, student_id) VALUES ($1, $2)")
-// 	if err != nil {
-// 		return ctx.Status(fiber.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
-// 	}
-// 	defer stmt.Close()
+	for i := range students.Students {
+		query.WriteString(fmt.Sprintf("($1, $%d),", i+2))
+	}
+	queryString := query.String()
+	queryString = queryString[:len(queryString)-1]
+	queryString += ";"
 
-// 	for _, userID := range requestBody.Users {
-// 		_, err := stmt.Exec(id, userID)
-// 		if err != nil {
-// 			return ctx.Status(fiber.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
-// 		}
-// 	}
+	queryParams := []any{idInt}
+	for _, student_id := range students.Students {
+		queryParams = append(queryParams, student_id)
+	}
 
-// 	if err := tx.Commit(); err != nil {
-// 		return ctx.Status(fiber.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
-// 	}
-
-// 	return ctx.Status(fiber.StatusOK).JSON(map[string]string{"message": "Успешно добавлено в enrollment"})
-// }
+	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
+	}
+	return c.JSON(models.RespMsg{Message: "Студенты успешно зачислены"})
+}
 
 func findMany(ctx *fiber.Ctx) error {
 	query := `
