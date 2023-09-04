@@ -8,7 +8,7 @@ type Enrollment struct {
 	CancellationReason string `json:"cancellation_reason" db:"cancellation_reason"`
 }
 
-type Class struct {
+type ClassDB struct {
 	ID                int    `json:"id" db:"id"`
 	Description       string `json:"description" db:"description"`
 	StartDate         string `json:"start_date" db:"start_date"`
@@ -21,7 +21,8 @@ type Class struct {
 	CourseID          int    `json:"course_id" db:"course_id"`
 }
 
-type CreateClass struct {
+type CreateClassDTO struct {
+	ID                int    `json:"id"`
 	Description       string `json:"description"`
 	StartDate         string `json:"start_date" validate:"required"`
 	EndDate           string `json:"end_date" validate:"required"`
@@ -31,7 +32,7 @@ type CreateClass struct {
 	CourseID          int    `json:"course_id" validate:"required"`
 }
 
-type UpdateClass struct {
+type UpdateClassDTO struct {
 	Description       string `json:"description"`
 	StartDate         string `json:"start_date"`
 	EndDate           string `json:"end_date"`

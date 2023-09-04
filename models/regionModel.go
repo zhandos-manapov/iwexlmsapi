@@ -1,6 +1,7 @@
 package models
 
 type CreateRegionDTO struct {
+	ID         int    `json:"id"`
 	RegionName string `json:"region_name" validate:"required"`
 	CountyID   int    `json:"country_id" validate:"required"`
 }

@@ -12,7 +12,7 @@ import (
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM city WHERE id=$1"
-	city := models.City{}
+	city := models.CityDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&city.ID, &city.CityName, &city.RegionID); err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	cities, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.City])
+	cities, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.CityDB])
 	if err != nil {
 		return err
 	}
@@ -37,19 +37,17 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	city := c.Locals("body").(*models.City)
-	query := "INSERT INTO city (city_name, region_id) VALUES($1, $2)"
-	if tag, err := database.Pool.Exec(context.Background(), query, city.CityName, city.RegionID); err != nil {
+	city := c.Locals("body").(*models.CreateCityDTO)
+	query := "INSERT INTO city (city_name, region_id) VALUES($1, $2) RETURNING id"
+	if err := database.Pool.QueryRow(context.Background(), query, city.CityName, city.RegionID).Scan(&city.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Город успешно добавлен"})
+	return c.JSON(city)
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	city := c.Locals("body").(*models.City)
+	city := c.Locals("body").(*models.UpdateCityDTO)
 	if city.CityName == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}

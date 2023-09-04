@@ -34,13 +34,11 @@ func findMany(c *fiber.Ctx) error {
 
 func createOne(c *fiber.Ctx) error {
 	country := c.Locals("body").(*models.CreateCountryDTO)
-	query := "INSERT INTO country (country_name) VAlUES ($1)"
-	if tag, err := database.Pool.Exec(context.Background(), query, country.CountryName); err != nil {
+	query := "INSERT INTO country (country_name) VAlUES ($1) RETURNING id"
+	if err := database.Pool.QueryRow(context.Background(), query, country.CountryName).Scan(&country.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Страна успешно создана "})
+	return c.JSON(country)
 }
 
 func updateOne(c *fiber.Ctx) error {

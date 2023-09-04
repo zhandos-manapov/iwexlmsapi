@@ -82,7 +82,7 @@ func findMany(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Class])
+	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.ClassDB])
 	if len(classes) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
 	}
@@ -104,7 +104,7 @@ func findOne(c *fiber.Ctx) error {
 		INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
 		INNER JOIN course ON course_cycle.course_id = course.course_id
 	WHERE course_cycle.id = $1`
-	class := models.Class{}
+	class := models.ClassDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
 		&class.ID,
 		&class.Description,
@@ -121,7 +121,7 @@ func findOne(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	class := c.Locals("body").(*models.CreateClass)
+	class := c.Locals("body").(*models.CreateClassDTO)
 	query := `
 	INSERT INTO course_cycle (
     description,
@@ -132,26 +132,26 @@ func createOne(c *fiber.Ctx) error {
     branch_id,
     course_id
   )
-	VALUES($1, $2, $3, $4, $5, $6, $7)`
-	if tag, err := database.Pool.Exec(
-		context.Background(), query,
+	VALUES($1, $2, $3, $4, $5, $6, $7)
+	RETURNING id`
+	if err := database.Pool.QueryRow(
+		context.Background(),
+		query,
 		class.Description,
 		class.StartDate,
 		class.EndDate,
 		class.BranchID,
 		class.CourseID,
-	); err != nil {
+	).Scan(&class.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Класс успешно создан"})
+	return c.JSON(class)
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	// TODO open_for_enrollment
-	class := c.Locals("body").(*models.UpdateClass)
+	class := c.Locals("body").(*models.UpdateClassDTO)
 	if class.Description == "" &&
 		class.StartDate == "" &&
 		class.EndDate == "" &&
