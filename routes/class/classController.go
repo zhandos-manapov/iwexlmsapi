@@ -67,6 +67,8 @@ func getEnrollment(c *fiber.Ctx) error {
 func findMany(ctx *fiber.Ctx) error {
 	query := `
 	SELECT course_cycle.id,
+		course_cycle.course_id,
+		course_cycle.branch_id,
 		course_cycle.description,
 		course_cycle.start_date,
 		course_cycle.end_date,
@@ -83,6 +85,9 @@ func findMany(ctx *fiber.Ctx) error {
 		return err
 	}
 	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.ClassDB])
+	if err != nil {
+		return err
+	}
 	if len(classes) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
 	}
@@ -93,6 +98,8 @@ func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
 	SELECT course_cycle.id,
+		course_cycle.course_id,
+		course_cycle.branch_id,
 		course_cycle.description,
 		course_cycle.start_date,
 		course_cycle.end_date,
@@ -107,6 +114,8 @@ func findOne(c *fiber.Ctx) error {
 	class := models.ClassDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
 		&class.ID,
+		&class.CourseID,
+		&class.BranchID,
 		&class.Description,
 		&class.StartDate,
 		&class.EndDate,

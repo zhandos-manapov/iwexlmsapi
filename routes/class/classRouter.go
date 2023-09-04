@@ -6,7 +6,7 @@ import (
 	"iwexlmsapi/models"
 )
 
-func SetupClassRoutes(router *fiber.Router) {
+func SetupClassRouter(router *fiber.Router) {
 	classRouter := (*router).Group("/classes")
 	classRouter.Get("/", findMany)
 	classRouter.Get("/:id", findOne)
