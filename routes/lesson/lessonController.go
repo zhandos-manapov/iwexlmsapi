@@ -3,12 +3,32 @@ package lesson
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 )
+
+func getIdLesson(c *fiber.Ctx) error {
+	id := c.Params("id")
+	query := `SELECT lesson.id
+	FROM lesson
+		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
+	WHERE course_cycle.id = $1`
+	lesson := models.GetIdLesson{}
+
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&lesson.Id,
+	); err != nil {
+		if err == pgx.ErrNoRows {
+			return fiber.NewError(fiber.StatusBadRequest, "Такого курса нет")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "Ошибка сервера: "+err.Error())
+	}
+	return c.JSON(lesson)
+}
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
