@@ -1,9 +1,10 @@
 package class
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/middleware"
 	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupClassRouter(router *fiber.Router) {

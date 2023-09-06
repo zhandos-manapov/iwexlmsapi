@@ -12,6 +12,10 @@ type CreateLessonDTO struct {
 	RecurrenceRule string `json:"recurrence_rule"`
 }
 
+type GetIdLesson struct {
+	Id int `json:"id" db:"id"`
+}
+
 type UpdateLessonDTO struct {
 	LessonTitle    string `json:"lesson_title" validate:"omitempty,min=2"`
 	CycleId        int    `json:"cycle_id"`

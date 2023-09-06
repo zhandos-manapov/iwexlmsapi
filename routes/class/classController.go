@@ -105,7 +105,7 @@ func findMany(ctx *fiber.Ctx) error {
 	if len(classes) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
 	}
-	return ctx.JSON(classes)
+	return c.JSON(classes)
 }
 
 func findOne(c *fiber.Ctx) error {
@@ -163,6 +163,8 @@ func createOne(c *fiber.Ctx) error {
 		class.Description,
 		class.StartDate,
 		class.EndDate,
+		class.OpenForEnrollment,
+		class.CourseCode,
 		class.BranchID,
 		class.CourseID,
 	).Scan(&class.ID); err != nil {
@@ -223,7 +225,7 @@ func updateOne(c *fiber.Ctx) error {
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
+		return fiber.NewError(fiber.StatusNotFound, "Урок не найден")
 	}
 	return c.JSON(models.RespMsg{Message: "Класс успешно обновлен"})
 }

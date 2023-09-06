@@ -38,8 +38,8 @@ type ClassDB struct {
 type CreateClassDTO struct {
 	ID                int    `json:"id"`
 	Description       string `json:"description"`
-	StartDate         string `json:"start_date" validate:"required"`
-	EndDate           string `json:"end_date" validate:"required"`
+	StartDate         string `json:"start_date" validate:"required,datetime=2006-01-02"`
+	EndDate           string `json:"end_date" validate:"required,datetime=2006-01-02"`
 	OpenForEnrollment bool   `json:"open_for_enrollment"`
 	CourseCode        string `json:"course_code" validate:"required"`
 	BranchID          int    `json:"branch_id" validate:"required"`
