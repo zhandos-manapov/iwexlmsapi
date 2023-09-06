@@ -32,8 +32,7 @@ func getIdLesson(c *fiber.Ctx) error {
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `
-	SELECT lesson.id
+	query := `SELECT lesson.id,
 		lesson.lesson_title,
 		lesson.cycle_id,
 		lesson.start_time,
@@ -47,6 +46,7 @@ func findOne(c *fiber.Ctx) error {
 	lesson := models.LessonDB{}
 
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&lesson.ID,
 		&lesson.LessonTitle,
 		&lesson.CycleId,
 		&lesson.StartTime,

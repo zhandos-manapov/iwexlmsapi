@@ -22,8 +22,6 @@ type reqBodyType interface {
 		models.CreateCountryDTO |
 		models.UpdateCountryDTO |
 		models.UpdateUserDTO |
-		models.CreateClass |
-		models.UpdateClass |
 		models.CreateLessonDTO |
 		models.UpdateLessonDTO |
 		models.UpdateBranchDTO |

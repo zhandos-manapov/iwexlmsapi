@@ -78,7 +78,7 @@ func enrollStudents(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Студенты успешно зачислены"})
 }
 
-func findMany(ctx *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := `
 	SELECT course_cycle.id,
 		course_cycle.course_id,
