@@ -7,12 +7,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupClassRoutes(router *fiber.Router) {
+func SetupClassRouter(router *fiber.Router) {
 	classRouter := (*router).Group("/classes")
 	classRouter.Get("/", findMany)
 	classRouter.Get("/:id", findOne)
-	classRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateClass{}), createOne)
-	classRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateClass{}), updateOne)
+	classRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateClassDTO{}), createOne)
+	classRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateClassDTO{}), updateOne)
 	classRouter.Delete("/:id", deleteOne)
-	classRouter.Get("/:id/people", getEnrollment)
+	classRouter.Get("/:id/people", getEnrolledStudents)
+	classRouter.Post("/:id/people", middleware.BodyParserValidatorMiddleware(&models.EnrollStudentsDTO{}), enrollStudents)
 }

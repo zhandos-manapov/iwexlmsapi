@@ -11,7 +11,7 @@ import (
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := "SELECT * FROM level WHERE id=$1"
-	level := models.Level{}
+	level := models.LevelDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&level.ID, &level.LevelName); err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	levels, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Level])
+	levels, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.LevelDB])
 	if err != nil {
 		return err
 	}
@@ -36,19 +36,17 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	level := c.Locals("body").(*models.Level)
-	query := "INSERT INTO level (level_name) VALUES($1)"
-	if tag, err := database.Pool.Exec(context.Background(), query, level.LevelName); err != nil {
+	level := c.Locals("body").(*models.CreateLevelDTO)
+	query := "INSERT INTO level (level_name) VALUES($1) RETURNING id"
+	if err := database.Pool.QueryRow(context.Background(), query, level.LevelName).Scan(&level.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Уровень успешно создан"})
+	return c.JSON(level)
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	level := c.Locals("body").(*models.Level)
+	level := c.Locals("body").(*models.UpdateLevelDTO)
 	if level.LevelName == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}

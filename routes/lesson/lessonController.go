@@ -33,7 +33,8 @@ func getIdLesson(c *fiber.Ctx) error {
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
-	SELECT lesson.lesson_title,
+	SELECT lesson.id
+		lesson.lesson_title,
 		lesson.cycle_id,
 		lesson.start_time,
 		lesson.end_time,
@@ -64,7 +65,8 @@ func findOne(c *fiber.Ctx) error {
 
 func findMany(c *fiber.Ctx) error {
 	query := `
-	SELECT lesson.lesson_title,
+	SELECT lesson.id
+		lesson.lesson_title,
 		lesson.cycle_id,
 		lesson.start_time,
 		lesson.end_time,
@@ -96,8 +98,9 @@ func createOne(c *fiber.Ctx) error {
     description,
     recurrence_rule
   )
-	VALUES($1, $2, $3, $4, $5, $6)`
-	if tag, err := database.Pool.Exec(
+	VALUES($1, $2, $3, $4, $5, $6)
+	RETURNING id`
+	if err := database.Pool.QueryRow(
 		context.Background(),
 		query,
 		lesson.CycleId,
@@ -106,12 +109,10 @@ func createOne(c *fiber.Ctx) error {
 		lesson.EndTime,
 		lesson.Description,
 		lesson.RecurrenceRule,
-	); err != nil {
+	).Scan(&lesson.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Курс успешно создан"})
+	return c.JSON(lesson)
 }
 
 func updateOne(c *fiber.Ctx) error {

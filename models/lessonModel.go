@@ -3,6 +3,7 @@ package models
 import "time"
 
 type CreateLessonDTO struct {
+	ID             int    `json:"id"`
 	LessonTitle    string `json:"lesson_title" validate:"required,min=2"`
 	CycleId        int    `json:"cycle_id" validate:"required"`
 	StartTime      string `json:"start_time" validate:"required,datetime=2006-01-02 15:04:05"`
@@ -25,6 +26,7 @@ type UpdateLessonDTO struct {
 }
 
 type LessonDB struct {
+	ID             int       `json:"id"`
 	LessonTitle    string    `json:"lesson_title" db:"lesson_title"`
 	CycleId        int       `json:"cycle_id" db:"cycle_id"`
 	StartTime      time.Time `json:"start_time" db:"start_time"`

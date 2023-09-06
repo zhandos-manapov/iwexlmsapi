@@ -37,13 +37,16 @@ func findMany(c *fiber.Ctx) error {
 
 func createOne(c *fiber.Ctx) error {
 	region := c.Locals("body").(*models.CreateRegionDTO)
-	query := "INSERT INTO region (region_name, country_id) VALUES($1, $2)"
-	if tag, err := database.Pool.Exec(context.Background(), query, region.RegionName, region.CountyID); err != nil {
+	query := "INSERT INTO region (region_name, country_id) VALUES($1, $2) RETURNING id"
+	if err := database.Pool.QueryRow(
+		context.Background(),
+		query,
+		region.RegionName,
+		region.CountyID,
+	).Scan(&region.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Регион успешно добавлен"})
+	return c.JSON(region)
 }
 
 func updateOne(c *fiber.Ctx) error {

@@ -5,33 +5,84 @@ import (
 	"fmt"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 )
 
-func getEnrollment(c *fiber.Ctx) error {
+func getEnrolledStudents(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
-	SELECT e.*, u.*
-	FROM enrollment AS e
-		INNER JOIN users AS u ON e.student_id = u.id
-	WHERE e.cycle_id = $1`
+	SELECT enrolled_student.*,
+  	role.role_name
+	FROM (
+    SELECT e.cycle_id,
+      e.student_id,
+      e.enrollment_date,
+      e.cancelled,
+      COALESCE(e.cancellation_reason, '') AS cancellation_reason,
+      u.first_name,
+      u.last_name,
+      u.email,
+      u.contact_number,
+      u.date_of_birth,
+      u.role,
+      u.is_active
+    FROM enrollment AS e
+      INNER JOIN users AS u ON e.student_id = u.id
+    WHERE e.cycle_id = $1
+  ) AS enrolled_student
+  INNER JOIN role ON enrolled_student.role = role.id`
 	rows, err := database.Pool.Query(context.Background(), query, id)
 	defer rows.Close()
 	if err != nil {
 		return err
 	}
-	enrollments, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Enrollment])
+	enrollments, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.EnrolledStudent])
 	if err != nil {
 		return err
 	}
 	return c.JSON(enrollments)
 }
 
-func findMany(c *fiber.Ctx) error {
-	query := `SELECT course_cycle.id,
+func enrollStudents(c *fiber.Ctx) error {
+	id := c.Params("id")
+	idInt, err := strconv.ParseInt(id, 10, 0)
+	if err != nil {
+		return err
+	}
+	students := c.Locals("body").(*models.EnrollStudentsDTO)
+
+	query := strings.Builder{}
+	query.WriteString("INSERT INTO enrollment (cycle_id, student_id) VALUES ")
+
+	for i := range students.Students {
+		query.WriteString(fmt.Sprintf("($1, $%d),", i+2))
+	}
+	queryString := query.String()
+	queryString = queryString[:len(queryString)-1]
+	queryString += ";"
+
+	queryParams := []any{idInt}
+	for _, student_id := range students.Students {
+		queryParams = append(queryParams, student_id)
+	}
+
+	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
+	}
+	return c.JSON(models.RespMsg{Message: "Студенты успешно зачислены"})
+}
+
+func findMany(ctx *fiber.Ctx) error {
+	query := `
+	SELECT course_cycle.id,
+		course_cycle.course_id,
+		course_cycle.branch_id,
 		course_cycle.description,
 		course_cycle.start_date,
 		course_cycle.end_date,
@@ -47,7 +98,10 @@ func findMany(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Class])
+	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.ClassDB])
+	if err != nil {
+		return err
+	}
 	if len(classes) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
 	}
@@ -58,6 +112,8 @@ func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
 	SELECT course_cycle.id,
+		course_cycle.course_id,
+		course_cycle.branch_id,
 		course_cycle.description,
 		course_cycle.start_date,
 		course_cycle.end_date,
@@ -69,9 +125,11 @@ func findOne(c *fiber.Ctx) error {
 		INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
 		INNER JOIN course ON course_cycle.course_id = course.course_id
 	WHERE course_cycle.id = $1`
-	class := models.Class{}
+	class := models.ClassDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
 		&class.ID,
+		&class.CourseID,
+		&class.BranchID,
 		&class.Description,
 		&class.StartDate,
 		&class.EndDate,
@@ -86,7 +144,7 @@ func findOne(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	class := c.Locals("body").(*models.CreateClass)
+	class := c.Locals("body").(*models.CreateClassDTO)
 	query := `
 	INSERT INTO course_cycle (
     description,
@@ -97,9 +155,11 @@ func createOne(c *fiber.Ctx) error {
     branch_id,
     course_id
   )
-	VALUES($1, $2, $3, $4, $5, $6, $7)`
-	if tag, err := database.Pool.Exec(
-		context.Background(), query,
+	VALUES($1, $2, $3, $4, $5, $6, $7)
+	RETURNING id`
+	if err := database.Pool.QueryRow(
+		context.Background(),
+		query,
 		class.Description,
 		class.StartDate,
 		class.EndDate,
@@ -107,17 +167,16 @@ func createOne(c *fiber.Ctx) error {
 		class.CourseCode,
 		class.BranchID,
 		class.CourseID,
-	); err != nil {
+	).Scan(&class.ID); err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Класс успешно создан"})
+	return c.JSON(class)
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	class := c.Locals("body").(*models.UpdateClass)
+	// TODO open_for_enrollment
+	class := c.Locals("body").(*models.UpdateClassDTO)
 	if class.Description == "" &&
 		class.StartDate == "" &&
 		class.EndDate == "" &&
