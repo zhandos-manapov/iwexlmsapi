@@ -1,6 +1,7 @@
 package main
 
 import (
+	"iwexlmsapi/routes/attendance"
 	"iwexlmsapi/routes/auth"
 	"iwexlmsapi/routes/branch"
 	"iwexlmsapi/routes/city"
@@ -31,4 +32,5 @@ func setupRoutes(app *fiber.App) {
 	users.SetupUserRouter(&mainRouter)
 	branch.SetupBranchRouter(&mainRouter)
 	class.SetupClassRouter(&mainRouter)
+	attendance.SetupAttendanceRouter(&mainRouter)
 }
