@@ -14,4 +14,5 @@ func SetupCourseRouter(router *fiber.Router) {
 	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateCourseDTO{}), createOne)
 	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateCourseDTO{}), updateOne)
 	localRouter.Delete("/:id", deleteOne)
+	localRouter.Get("/:id/classes", findClassesByCourse)
 }

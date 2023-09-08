@@ -78,7 +78,7 @@ func enrollStudents(c *fiber.Ctx) error {
 	return c.JSON(models.RespMsg{Message: "Студенты успешно зачислены"})
 }
 
-func findMany(ctx *fiber.Ctx) error {
+func findMany(c *fiber.Ctx) error {
 	query := `
 	SELECT course_cycle.id,
 		course_cycle.course_id,
@@ -105,7 +105,7 @@ func findMany(ctx *fiber.Ctx) error {
 	if len(classes) == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
 	}
-	return ctx.JSON(classes)
+	return c.JSON(classes)
 }
 
 func findOne(c *fiber.Ctx) error {
@@ -175,12 +175,7 @@ func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	// TODO open_for_enrollment
 	class := c.Locals("body").(*models.UpdateClassDTO)
-	if class.Description == "" &&
-		class.StartDate == "" &&
-		class.EndDate == "" &&
-		class.BranchID == 0 &&
-		class.CourseID == 0 &&
-		class.CourseCode == "" {
+	if (*class == models.UpdateClassDTO{}) {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 	query := strings.Builder{}
