@@ -177,12 +177,7 @@ func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	// TODO open_for_enrollment
 	class := c.Locals("body").(*models.UpdateClassDTO)
-	if class.Description == "" &&
-		class.StartDate == "" &&
-		class.EndDate == "" &&
-		class.BranchID == 0 &&
-		class.CourseID == 0 &&
-		class.CourseCode == "" {
+	if (*class == models.UpdateClassDTO{}) {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 	query := strings.Builder{}
