@@ -43,7 +43,7 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createOne(c *fiber.Ctx) error {
-	attendance := c.Locals("body").(*models.Attendance)
+	attendance := c.Locals("body").(*models.UpdAttendance)
 	query := `
 	INSERT INTO attendance (lesson_id, student_id, attended)
 	VALUES ($1, $2, $3)
@@ -54,7 +54,7 @@ func createOne(c *fiber.Ctx) error {
 		attendance.LessonId,
 		attendance.StudentId,
 		attendance.Attended,
-	).Scan(&attendance.Id); err != nil {
+	).Scan(&attendance.StudentId); err != nil {
 		return err
 	}
 	return c.JSON(attendance)
