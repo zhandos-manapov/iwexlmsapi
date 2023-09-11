@@ -1,12 +1,15 @@
 package users
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/middleware"
 	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupUserRouter(router *fiber.Router) {
+	(*router).Get("/filter", filterUsers)
+
 	usersRouter := (*router).Group("/users")
 
 	usersRouter.Get("/", findMany)

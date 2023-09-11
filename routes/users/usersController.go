@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
+	"net/url"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -147,4 +148,115 @@ func deleteOne(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Пользователь не найден")
 	}
 	return c.JSON(models.RespMsg{Message: "Пользователь успешно удален "})
+}
+
+func filterUsers(c *fiber.Ctx) error {
+	var filter models.UsersFilter
+	if err := c.QueryParser(&filter); err != nil {
+		return err
+	}
+
+	query := `
+        SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.contact_number,
+        u.date_of_birth,
+        u.is_active,
+        u.role,
+        r.role_name,
+        e.cycle_id,
+        e.student_id,
+        cc.course_code,
+        cc.course_id AS course_course_id,
+        c.name AS course_name
+        FROM users u
+        INNER JOIN role r ON u.role = r.id
+        LEFT JOIN enrollment e ON u.id = e.student_id
+        LEFT JOIN course_cycle cc ON e.cycle_id = cc.id
+        LEFT JOIN course c ON cc.course_id = c.course_id
+        WHERE 1=1`
+
+	var queryParams []interface{}
+
+	if filter.FirstName != nil && *filter.FirstName != "" {
+		query += " AND (u.first_name = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
+		queryParams = append(queryParams, *filter.FirstName)
+	}
+
+	if filter.LastName != nil && *filter.LastName != "" {
+		query += " AND (u.last_name = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
+		queryParams = append(queryParams, *filter.LastName)
+	}
+
+	if filter.RoleName != nil && *filter.RoleName != "" {
+		query += " AND (r.role_name = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
+		queryParams = append(queryParams, *filter.RoleName)
+	}
+
+	if filter.CourseName != nil {
+		decodedCourseName, err := url.QueryUnescape(*filter.CourseName)
+		if err != nil {
+			return err
+		}
+		filter.CourseName = &decodedCourseName
+
+		query += " AND (TRIM(c.name) = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
+		queryParams = append(queryParams, *filter.CourseName)
+	}
+
+	if filter.CourseCode != nil {
+		decodedCourseCode, err := url.QueryUnescape(*filter.CourseCode)
+		if err != nil {
+			return err
+		}
+
+		query += " AND (TRIM(cc.course_code) = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
+		queryParams = append(queryParams, decodedCourseCode)
+	}
+
+	if filter.IsActive != nil {
+		if *filter.IsActive {
+
+			query += " AND u.is_active = true"
+		} else {
+			query += " AND u.is_active = false"
+		}
+	}
+
+	rows, err := database.Pool.Query(context.Background(), query, queryParams...)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	var users []models.UsersFilter
+
+	for rows.Next() {
+		var user models.UsersFilter
+		if err := rows.Scan(
+			&user.Id,
+			&user.FirstName,
+			&user.LastName,
+			&user.Email,
+			&user.ContactNumber,
+			&user.DateOfBirth,
+			&user.IsActive,
+			&user.Role,
+			&user.RoleName,
+			&user.CycleID,
+			&user.StudentID,
+			&user.CourseCode,
+			&user.CourseCourseID,
+			&user.CourseName,
+		); err != nil {
+			return err
+		}
+		users = append(users, user)
+	}
+
+	return c.JSON(users)
 }
