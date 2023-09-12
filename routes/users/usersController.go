@@ -197,7 +197,6 @@ func filterUsers(c *fiber.Ctx) error {
 	}
 
 	if filter.CourseCode != nil {
-		// Split CourseCode values into a slice
 		courseCodes := c.Query("CourseCode")
 		courseCodeValues := strings.Split(courseCodes, ",")
 
@@ -208,7 +207,6 @@ func filterUsers(c *fiber.Ctx) error {
 	}
 
 	if filter.CourseName != nil {
-		// Split CourseName values into a slice
 		courseNames := c.Query("CourseName")
 		courseNameValues := strings.Split(courseNames, ",")
 
