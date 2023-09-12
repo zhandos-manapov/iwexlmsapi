@@ -3,11 +3,12 @@ package course
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 )
 
 func findOne(c *fiber.Ctx) error {

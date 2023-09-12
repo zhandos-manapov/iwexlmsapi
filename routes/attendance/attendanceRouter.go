@@ -8,7 +8,7 @@ import (
 )
 
 func SetupAttendanceRouter(router *fiber.Router) {
-	localRouter := (*router).Group("/attendance")
+	localRouter := (*router).Group("/attendances")
 	localRouter.Get("/:id", findOne)
 	localRouter.Get("/", findMany)
 	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.UpdAttendance{}), createOne)

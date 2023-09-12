@@ -13,16 +13,18 @@ import (
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT *
+	query := `
+	SELECT lesson.start_time,
+	lesson.lesson_title
 	FROM attendance
-	WHERE attendance.id=$1`
-	attendance := models.Attendance{}
-	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
-		&attendance.LessonId,
-		&attendance.StudentId,
-		&attendance.Attended,
-		&attendance.Id,
-	); err != nil {
+	INNER JOIN lesson ON lesson.cycle_id=$1`
+	rows, err := database.Pool.Query(context.Background(), query, id)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+	attendance, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.FindAttendanceOne])
+	if err != nil {
 		return err
 	}
 	return c.JSON(attendance)
@@ -64,7 +66,7 @@ func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	attendance := c.Locals("body").(*models.UpdAttendance)
 
-	if attendance.LessonId == 0 && attendance.StudentId == 0 && attendance.Attended == "" {
+	if attendance.LessonId == 0 && attendance.StudentId == 0 && attendance.Attended == false {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 
@@ -82,7 +84,7 @@ func updateOne(c *fiber.Ctx) error {
 		queryParams = append(queryParams, attendance.StudentId)
 	}
 
-	if attendance.Attended != "" {
+	if attendance.Attended != false {
 		query.WriteString(fmt.Sprintf(" attended=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, attendance.Attended)
 	}
