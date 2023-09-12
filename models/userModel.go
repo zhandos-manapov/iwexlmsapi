@@ -46,20 +46,11 @@ type UpdateUserDTO struct {
 	IsActive      bool   `json:"is_active"`
 }
 type UsersFilter struct {
-	Id             int       `json:"id"`
-	FirstName      *string   `json:"first_name"`
-	LastName       *string   `json:"last_name"`
-	Email          string    `json:"email"`
-	ContactNumber  string    `json:"contact_number"`
-	DateOfBirth    time.Time `json:"date_of_birth"`
-	IsActive       *bool     `json:"is_active"`
-	Role           int       `json:"role"`
-	RoleName       *string   `json:"role_name"`
-	CycleID        *int      `json:"cycle_id"`
-	StudentID      *int      `json:"student_id"`
-	EnrollmentDate time.Time `json:"enrollment_date"`
-	Cancelled      bool      `json:"cancelled"`
-	CourseCode     *string   `json:"course_code"`
-	CourseCourseID *int      `json:"course_course_id"`
-	CourseName     *string   `json:"course_name"`
+	Id         int     `json:"id"`
+	FirstName  *string `json:"first_name"`
+	LastName   *string `json:"last_name"`
+	IsActive   *bool   `json:"is_active"`
+	RoleName   *string `json:"role_name"`
+	CourseCode *string `json:"course_code"`
+	CourseName *string `json:"course_name"`
 }

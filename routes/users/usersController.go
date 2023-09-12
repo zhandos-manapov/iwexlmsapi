@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
-	"net/url"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -161,16 +160,9 @@ func filterUsers(c *fiber.Ctx) error {
         u.id,
         u.first_name,
         u.last_name,
-        u.email,
-        u.contact_number,
-        u.date_of_birth,
         u.is_active,
-        u.role,
         r.role_name,
-        e.cycle_id,
-        e.student_id,
         cc.course_code,
-        cc.course_id AS course_course_id,
         c.name AS course_name
         FROM users u
         INNER JOIN role r ON u.role = r.id
@@ -196,33 +188,33 @@ func filterUsers(c *fiber.Ctx) error {
 		queryParams = append(queryParams, *filter.RoleName)
 	}
 
-	if filter.CourseName != nil {
-		decodedCourseName, err := url.QueryUnescape(*filter.CourseName)
-		if err != nil {
-			return err
-		}
-		filter.CourseName = &decodedCourseName
-
-		query += " AND (TRIM(c.name) = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
-		queryParams = append(queryParams, *filter.CourseName)
-	}
-
-	if filter.CourseCode != nil {
-		decodedCourseCode, err := url.QueryUnescape(*filter.CourseCode)
-		if err != nil {
-			return err
-		}
-
-		query += " AND (TRIM(cc.course_code) = $" + fmt.Sprint(len(queryParams)+1) + " OR $" + fmt.Sprint(len(queryParams)+1) + " = '')"
-		queryParams = append(queryParams, decodedCourseCode)
-	}
-
 	if filter.IsActive != nil {
 		if *filter.IsActive {
-
 			query += " AND u.is_active = true"
 		} else {
 			query += " AND u.is_active = false"
+		}
+	}
+
+	if filter.CourseCode != nil {
+		// Split CourseCode values into a slice
+		courseCodes := c.Query("CourseCode")
+		courseCodeValues := strings.Split(courseCodes, ",")
+
+		if len(courseCodeValues) > 0 {
+			query += " AND TRIM(cc.course_code) = ANY($" + fmt.Sprint(len(queryParams)+1) + "::text[])"
+			queryParams = append(queryParams, courseCodeValues)
+		}
+	}
+
+	if filter.CourseName != nil {
+		// Split CourseName values into a slice
+		courseNames := c.Query("CourseName")
+		courseNameValues := strings.Split(courseNames, ",")
+
+		if len(courseNameValues) > 0 {
+			query += " AND TRIM(c.name) = ANY($" + fmt.Sprint(len(queryParams)+1) + "::text[])"
+			queryParams = append(queryParams, courseNameValues)
 		}
 	}
 
@@ -241,16 +233,9 @@ func filterUsers(c *fiber.Ctx) error {
 			&user.Id,
 			&user.FirstName,
 			&user.LastName,
-			&user.Email,
-			&user.ContactNumber,
-			&user.DateOfBirth,
 			&user.IsActive,
-			&user.Role,
 			&user.RoleName,
-			&user.CycleID,
-			&user.StudentID,
 			&user.CourseCode,
-			&user.CourseCourseID,
 			&user.CourseName,
 		); err != nil {
 			return err
