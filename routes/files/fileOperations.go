@@ -1,10 +1,11 @@
 package files
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"io/ioutil"
 	"iwexlmsapi/models"
 	"path"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func readFiles(c *fiber.Ctx) error {
@@ -50,11 +51,11 @@ func readFolder(c *fiber.Ctx) error {
 	for i, file := range files {
 		filesList[i] = file.Name()
 	}
-	folderInfo, err := fileStat(body.Path)
+	folderInfo, err := fileManagerDirectoryContent(body, path.Join(CONTENT_ROOT_PATH, body.Path), "")
 	if err != nil {
 		return err
 	}
-	filesInfo, err := readDirectories(filesList)
+	filesInfo, err := readDirectories(body, filesList)
 	if err != nil {
 		return err
 	}
