@@ -32,7 +32,9 @@ type reqBodyType interface {
 		models.UpdateLevelDTO |
 		models.UpdateClassDTO |
 		models.CreateClassDTO |
-		models.EnrollStudentsDTO
+		models.EnrollStudentsDTO |
+		models.FileDownloadReqBody |
+		models.FileUploadReqBody
 }
 
 func BodyParserValidatorMiddleware[T reqBodyType](data *T) func(c *fiber.Ctx) error {

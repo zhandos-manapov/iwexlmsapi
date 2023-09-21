@@ -128,8 +128,6 @@ func updateOne(c *fiber.Ctx) error {
 	queryString = queryString[:len(queryString)-1]
 	queryString += " WHERE id=$1"
 
-	fmt.Println(queryString)
-
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {
