@@ -15,7 +15,8 @@ func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `
 	SELECT lesson.start_time,
-	lesson.lesson_title
+	lesson.lesson_title,
+	lesson.id
 	FROM attendance
 	INNER JOIN lesson ON lesson.cycle_id=$1`
 	rows, err := database.Pool.Query(context.Background(), query, id)
@@ -48,18 +49,18 @@ func createOne(c *fiber.Ctx) error {
 	attendance := c.Locals("body").(*models.UpdAttendance)
 	query := `
 	INSERT INTO attendance (lesson_id, student_id, attended)
-	VALUES ($1, $2, $3)
-	RETURNING id`
-	if err := database.Pool.QueryRow(
+	VALUES ($1, $2, $3)`
+	_, err := database.Pool.Exec(
 		context.Background(),
 		query,
 		attendance.LessonId,
 		attendance.StudentId,
 		attendance.Attended,
-	).Scan(&attendance.StudentId); err != nil {
+	)
+	if err != nil {
 		return err
 	}
-	return c.JSON(attendance)
+	return c.JSON(models.RespMsg{Message: "Посещаемость добавлена!"})
 }
 
 func updateOne(c *fiber.Ctx) error {

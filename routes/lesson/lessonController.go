@@ -23,7 +23,7 @@ func getIdLesson(c *fiber.Ctx) error {
 		&lesson.Id,
 	); err != nil {
 		if err == pgx.ErrNoRows {
-			return fiber.NewError(fiber.StatusBadRequest, "Такого курса нет")
+			return fiber.NewError(fiber.StatusBadRequest, "Такого класса нет")
 		}
 		return fiber.NewError(fiber.StatusInternalServerError, "Ошибка сервера: "+err.Error())
 	}
@@ -37,7 +37,6 @@ func findOne(c *fiber.Ctx) error {
 		lesson.cycle_id,
 		lesson.start_time,
 		lesson.end_time,
-		COALESCE(lesson.recurrence_rule, '') as recurrence_rule,
 		COALESCE(lesson.description, '') as description,
 		course_cycle.course_code
 	FROM lesson
@@ -51,7 +50,6 @@ func findOne(c *fiber.Ctx) error {
 		&lesson.CycleId,
 		&lesson.StartTime,
 		&lesson.EndTime,
-		&lesson.RecurrenceRule,
 		&lesson.Description,
 		&lesson.CourseCode,
 	); err != nil {
@@ -71,7 +69,6 @@ func findMany(c *fiber.Ctx) error {
 		lesson.start_time,
 		lesson.end_time,
 		COALESCE(lesson.description, '') as description,
-		COALESCE(lesson.recurrence_rule, '') as recurrence_rule,
 		course_cycle.course_code
 	FROM lesson
 		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id`
@@ -95,10 +92,9 @@ func createOne(c *fiber.Ctx) error {
     lesson_title,
     start_time,
     end_time,
-    description,
-    recurrence_rule
+    description
   )
-	VALUES($1, $2, $3, $4, $5, $6)
+	VALUES($1, $2, $3, $4, $5)
 	RETURNING id`
 	if err := database.Pool.QueryRow(
 		context.Background(),
@@ -145,11 +141,6 @@ func updateOne(c *fiber.Ctx) error {
 	if lesson.EndTime != "" {
 		query.WriteString(fmt.Sprintf(" end_time=$%d,", len(queryParams)+1))
 		queryParams = append(queryParams, lesson.EndTime)
-	}
-
-	if lesson.RecurrenceRule != "" {
-		query.WriteString(fmt.Sprintf(" recurrence_rule=$%d,", len(queryParams)+1))
-		queryParams = append(queryParams, lesson.RecurrenceRule)
 	}
 
 	if lesson.Description != "" {

@@ -12,6 +12,7 @@ type Attendance struct {
 type FindAttendanceOne struct {
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	LessonTitle string    `json:"lesson_title" db:"lesson_title"`
+	Id          int       `json:"id" db:"id"`
 }
 
 type UpdAttendance struct {
