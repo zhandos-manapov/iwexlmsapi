@@ -79,20 +79,22 @@ func enrollStudents(c *fiber.Ctx) error {
 }
 
 func findMany(c *fiber.Ctx) error {
-	query := `
-	SELECT course_cycle.id,
-		course_cycle.course_id,
-		course_cycle.branch_id,
-		course_cycle.description,
-		course_cycle.start_date,
-		course_cycle.end_date,
-		course_cycle.open_for_enrollment,
-		course_cycle.course_code,
-		branch_office.name as branch_name,
-		course.name as course_name
-	FROM course_cycle
-		INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
-		INNER JOIN course ON course_cycle.course_id = course.course_id`
+	query := `With enrol AS
+	(select * from enrollment)
+		SELECT course_cycle.id,
+			course_cycle.course_id,
+			course_cycle.branch_id,
+			course_cycle.description,
+			course_cycle.start_date,
+			course_cycle.end_date,
+			course_cycle.open_for_enrollment,
+			course_cycle.course_code,
+			branch_office.name as branch_name,
+			course.name as course_name,
+	 (SELECT COUNT(student_id) FROM enrol as countUser WHERE countUser.cycle_id = course_cycle.id) as users 
+		FROM course_cycle
+			INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
+			INNER JOIN course ON course_cycle.course_id = course.course_id`
 	rows, err := database.Pool.Query(context.Background(), query)
 	defer rows.Close()
 	if err != nil {
