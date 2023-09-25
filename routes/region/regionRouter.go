@@ -12,7 +12,7 @@ func SetupRegionRouter(router *fiber.Router) {
 
 	regionRouter.Get("/:id", findOne)
 	regionRouter.Get("/", findMany)
-	regionRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateRegionDTO{}), createOne)
-	regionRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateRegionDTO{}), updateOne)
+	regionRouter.Post("/", middleware.BodyParserValidatorMiddlewareForStruct(&models.CreateRegionDTO{}), createOne)
+	regionRouter.Patch("/:id", middleware.BodyParserValidatorMiddlewareForStruct(&models.UpdateRegionDTO{}), updateOne)
 	regionRouter.Delete("/:id", deleteOne)
 }

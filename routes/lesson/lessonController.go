@@ -13,15 +13,14 @@ import (
 
 func getIdLesson(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT lesson.id
-	FROM lesson
+	query := `
+		SELECT lesson.id
+		FROM lesson
 		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
-	WHERE course_cycle.id = $1`
+		WHERE course_cycle.id = $1`
 	lesson := models.GetIdLesson{}
 
-	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
-		&lesson.Id,
-	); err != nil {
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&lesson.Id); err != nil {
 		if err == pgx.ErrNoRows {
 			return fiber.NewError(fiber.StatusBadRequest, "Такого курса нет")
 		}
@@ -32,7 +31,8 @@ func getIdLesson(c *fiber.Ctx) error {
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT lesson.id,
+	query := `
+	SELECT lesson.id,
 		lesson.lesson_title,
 		lesson.cycle_id,
 		lesson.start_time,
@@ -85,11 +85,7 @@ func findMany(c *fiber.Ctx) error {
 }
 
 func createMany(c *fiber.Ctx) error {
-	lessons := []*models.CreateLessonDTO{}
-
-	if err := c.BodyParser(&lessons); err != nil {
-		return err
-	}
+	lessons := c.Locals("body").([]models.CreateLessonDTO)
 
 	query := `
 	INSERT INTO lesson(
@@ -100,7 +96,7 @@ func createMany(c *fiber.Ctx) error {
     description)
 	VALUES`
 
-	var args []interface{}
+	args := []any{}
 
 	for i, lesson := range lessons {
 		args = append(args,
@@ -115,11 +111,11 @@ func createMany(c *fiber.Ctx) error {
 
 	query = query[:len(query)-1]
 
-	_, err := database.Pool.Query(context.Background(), query, args...)
-	if err != nil {
+	if tag, err := database.Pool.Exec(context.Background(), query, args...); err != nil {
 		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
 	}
-
 	return c.JSON(models.RespMsg{Message: "Урок успешно добавлен"})
 }
 

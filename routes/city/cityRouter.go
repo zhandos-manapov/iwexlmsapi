@@ -12,7 +12,7 @@ func SetupCityRouter(router *fiber.Router) {
 
 	cityRouter.Get("/", findMany)
 	cityRouter.Get("/:id", findOne)
-	cityRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateCityDTO{}), createOne)
-	cityRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateCityDTO{}), updateOne)
+	cityRouter.Post("/", middleware.BodyParserValidatorMiddlewareForStruct(&models.CreateCityDTO{}), createOne)
+	cityRouter.Patch("/:id", middleware.BodyParserValidatorMiddlewareForStruct(&models.UpdateCityDTO{}), updateOne)
 	cityRouter.Delete("/:id", deleteOne)
 }
