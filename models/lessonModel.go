@@ -6,8 +6,8 @@ type CreateLessonDTO struct {
 	ID          int    `json:"id"`
 	LessonTitle string `json:"lesson_title" validate:"required,min=2"`
 	CycleId     int    `json:"cycle_id" validate:"required"`
-	StartTime   string `json:"start_time" validate:"required,datetime=2006-01-02 15:04:05"`
-	EndTime     string `json:"end_time" validate:"required,datetime=2006-01-02 15:04:05"`
+	StartTime   string `json:"start_time" validate:"required,datetime=2006-01-02T15:04:05Z"`
+	EndTime     string `json:"end_time" validate:"required,datetime=2006-01-02T15:04:05Z"`
 	Description string `json:"description"`
 }
 

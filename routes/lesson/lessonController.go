@@ -13,15 +13,14 @@ import (
 
 func getIdLesson(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT lesson.id
-	FROM lesson
+	query := `
+		SELECT lesson.id
+		FROM lesson
 		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
-	WHERE course_cycle.id = $1`
+		WHERE course_cycle.id = $1`
 	lesson := models.GetIdLesson{}
 
-	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
-		&lesson.Id,
-	); err != nil {
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(&lesson.Id); err != nil {
 		if err == pgx.ErrNoRows {
 			return fiber.NewError(fiber.StatusBadRequest, "Такого курса нет")
 		}
@@ -32,7 +31,8 @@ func getIdLesson(c *fiber.Ctx) error {
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `SELECT lesson.id,
+	query := `
+	SELECT lesson.id,
 		lesson.lesson_title,
 		lesson.cycle_id,
 		lesson.start_time,
@@ -41,7 +41,7 @@ func findOne(c *fiber.Ctx) error {
 		course_cycle.course_code
 	FROM lesson
 		INNER JOIN course_cycle ON lesson.cycle_id = course_cycle.id
-	WHERE lesson.id = $1`
+	WHERE lesson.cycle_id = $1`
 	lesson := models.LessonDB{}
 
 	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
@@ -84,8 +84,9 @@ func findMany(c *fiber.Ctx) error {
 	return c.JSON(lessons)
 }
 
-func createOne(c *fiber.Ctx) error {
-	lesson := c.Locals("body").(*models.CreateLessonDTO)
+func createMany(c *fiber.Ctx) error {
+	lessons := c.Locals("body").([]models.CreateLessonDTO)
+
 	query := `
 	INSERT INTO lesson(
     cycle_id,
@@ -93,20 +94,29 @@ func createOne(c *fiber.Ctx) error {
     start_time,
     end_time,
     description)
-	VALUES($1, $2, $3, $4, $5)
-	RETURNING id`
-	if err := database.Pool.QueryRow(
-		context.Background(),
-		query,
-		lesson.CycleId,
-		lesson.LessonTitle,
-		lesson.StartTime,
-		lesson.EndTime,
-		lesson.Description,
-	).Scan(&lesson.ID); err != nil {
-		return err
+	VALUES`
+
+	args := []any{}
+
+	for i, lesson := range lessons {
+		args = append(args,
+			lesson.CycleId,
+			lesson.LessonTitle,
+			lesson.StartTime,
+			lesson.EndTime,
+			lesson.Description,
+		)
+		query += fmt.Sprintf("($%d, $%d, $%d, $%d, $%d),", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5)
 	}
-	return c.JSON(lesson)
+
+	query = query[:len(query)-1]
+
+	if tag, err := database.Pool.Exec(context.Background(), query, args...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
+	}
+	return c.JSON(models.RespMsg{Message: "Урок успешно добавлен"})
 }
 
 func updateOne(c *fiber.Ctx) error {
@@ -147,7 +157,7 @@ func updateOne(c *fiber.Ctx) error {
 	}
 	queryString := query.String()
 	queryString = queryString[:len(queryString)-1]
-	queryString += " WHERE id=$1"
+	queryString += " WHERE cycle_id=$1"
 
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err
@@ -159,7 +169,7 @@ func updateOne(c *fiber.Ctx) error {
 
 func deleteOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := "DELETE FROM lesson WHERE id = $1"
+	query := "DELETE FROM lesson WHERE cycle_id = $1"
 	if tag, err := database.Pool.Exec(context.Background(), query, id); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {

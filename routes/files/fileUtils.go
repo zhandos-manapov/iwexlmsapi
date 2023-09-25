@@ -244,16 +244,16 @@ func copyFolder(source string, dest string) error {
 					}
 				} else {
 					originalFile, err := os.Open(currSource)
+					defer originalFile.Close()
 					if err != nil {
 						return err
 					}
-					defer originalFile.Close()
 
 					newFile, err := os.Open(targetPath)
+					defer newFile.Close()
 					if err != nil {
 						return err
 					}
-					defer newFile.Close()
 
 					if _, err := io.Copy(newFile, originalFile); err != nil {
 						return err
