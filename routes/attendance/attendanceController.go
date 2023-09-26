@@ -13,10 +13,27 @@ import (
 
 func findOne(c *fiber.Ctx) error {
 	id := c.Params("id")
-	query := `
-	SELECT lesson.start_time,
+	query := `SELECT * FROM attendance WHERE lesson_id = $1`
+	attendance := models.Attendance{}
+	if err := database.Pool.QueryRow(context.Background(), query, id).Scan(
+		&attendance.LessonId,
+		&attendance.StudentId,
+		&attendance.Attended,
+	); err != nil {
+		if err == pgx.ErrNoRows {
+			return fiber.NewError(fiber.StatusBadRequest, "Информация не найдена")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, "Ошибка сервера: "+err.Error())
+	}
+	return c.JSON(attendance)
+}
+
+func findMany(c *fiber.Ctx) error {
+	id := c.Params("id")
+	query := `SELECT lesson.start_time,
 	lesson.lesson_title,
-	lesson.id
+	lesson.id,
+	attended
 	FROM attendance
 	INNER JOIN lesson ON lesson.cycle_id=$1`
 	rows, err := database.Pool.Query(context.Background(), query, id)
@@ -24,43 +41,42 @@ func findOne(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	attendance, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.FindAttendanceOne])
-	if err != nil {
-		return err
-	}
-	return c.JSON(attendance)
-}
-
-func findMany(c *fiber.Ctx) error {
-	query := `SELECT * FROM attendance`
-	rows, err := database.Pool.Query(context.Background(), query)
-	defer rows.Close()
-	if err != nil {
-		return err
-	}
-	courses, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.Attendance])
+	courses, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.AttendanceFind])
 	if err != nil {
 		return err
 	}
 	return c.JSON(courses)
 }
 
-func createOne(c *fiber.Ctx) error {
-	attendance := c.Locals("body").(*models.UpdAttendance)
+func createMany(c *fiber.Ctx) error {
+	attendance := c.Locals("body").([]models.UpdAttendance)
+
 	query := `
-	INSERT INTO attendance (lesson_id, student_id, attended)
-	VALUES ($1, $2, $3)`
-	_, err := database.Pool.Exec(
-		context.Background(),
-		query,
-		attendance.LessonId,
-		attendance.StudentId,
-		attendance.Attended,
-	)
-	if err != nil {
-		return err
+	INSERT INTO attendance(
+		lesson_id,
+		student_id,
+		attended)
+	VALUES`
+
+	args := []any{}
+
+	for i, attended := range attendance {
+		args = append(args,
+			attended.LessonId,
+			attended.StudentId,
+			attended.Attended,
+		)
+		query += fmt.Sprintf("($%d, $%d, $%d),", i*3+1, i*3+2, i*3+3)
 	}
-	return c.JSON(models.RespMsg{Message: "Посещаемость добавлена!"})
+
+	query = query[:len(query)-1]
+
+	if tag, err := database.Pool.Exec(context.Background(), query, args...); err != nil {
+		return err
+	} else if tag.RowsAffected() < 1 {
+		return fiber.ErrInternalServerError
+	}
+	return c.JSON(models.RespMsg{Message: "Успешно добавлен"})
 }
 
 func updateOne(c *fiber.Ctx) error {
@@ -92,7 +108,7 @@ func updateOne(c *fiber.Ctx) error {
 
 	queryString := query.String()
 	queryString = queryString[:len(queryString)-1]
-	queryString += " WHERE id=$1"
+	queryString += " WHERE lesson_id=$1"
 
 	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
 		return err

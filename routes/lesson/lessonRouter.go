@@ -12,7 +12,7 @@ func SetupLessonRouter(router *fiber.Router) {
 	localRouter.Get("/gil/:id", getIdLesson)
 	localRouter.Get("/:id", findOne)
 	localRouter.Get("/", findMany)
-	localRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.CreateLessonDTO{}), createOne)
-	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateLessonDTO{}), updateOne)
+	localRouter.Post("/", middleware.BodyParserValidatorMiddlewareForSlice([]models.CreateLessonDTO{}), createMany)
+	localRouter.Patch("/:id", middleware.BodyParserValidatorMiddlewareForStruct(&models.UpdateLessonDTO{}), updateOne)
 	localRouter.Delete("/:id", deleteOne)
 }

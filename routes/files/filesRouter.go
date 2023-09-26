@@ -9,5 +9,5 @@ import (
 
 func SetupFilesRouter(router *fiber.Router) {
 	filesRouter := (*router).Group("/files")
-	filesRouter.Post("/", middleware.BodyParserValidatorMiddleware(&models.FileOperationsReqBody{}), fileOperations)
+	filesRouter.Post("/", middleware.BodyParserValidatorMiddlewareForStruct(&models.FileOperationsReqBody{}), fileOperations)
 }
