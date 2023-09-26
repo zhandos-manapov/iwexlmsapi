@@ -26,7 +26,7 @@ func fileOperations(c *fiber.Ctx) error {
 		return searchItem(c)
 	case "read":
 		return readFolder(c)
+	default:
+		return nil
 	}
-
-	return nil
 }

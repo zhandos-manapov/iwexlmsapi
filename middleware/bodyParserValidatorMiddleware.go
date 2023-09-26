@@ -33,7 +33,8 @@ type reqBodyType interface {
 		models.UpdateClassDTO |
 		models.CreateClassDTO |
 		models.EnrollStudentsDTO |
-		models.UpdAttendance
+		models.FileDownloadReqBody |
+		models.FileUploadReqBody
 }
 
 func BodyParserValidatorMiddlewareForStruct[T reqBodyType](data *T) func(c *fiber.Ctx) error {
@@ -50,7 +51,7 @@ func BodyParserValidatorMiddlewareForStruct[T reqBodyType](data *T) func(c *fibe
 	}
 }
 
-func BodyParserValidatorMiddlewareForSlice[T models.CreateLessonDTO | models.UpdAttendance](data []T) func(c *fiber.Ctx) error {
+func BodyParserValidatorMiddlewareForSlice[T models.CreateLessonDTO](data []T) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		if err := c.BodyParser(&data); err != nil {
 			return err

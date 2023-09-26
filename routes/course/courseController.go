@@ -130,3 +130,35 @@ func deleteOne(c *fiber.Ctx) error {
 	}
 	return c.JSON(models.RespMsg{Message: "Курс успешно удален"})
 }
+
+func findClassesByCourse(c *fiber.Ctx) error {
+	id := c.Params("id")
+	query := `
+  SELECT course_cycle.id,
+    course_cycle.description,
+    course_cycle.start_date,
+    course_cycle.end_date,
+    course_cycle.open_for_enrollment,
+    course_cycle.course_id,
+    course_cycle.course_code,
+    branch_office.name as branch_name,
+    course.name as course_name
+  FROM course_cycle
+    INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
+    INNER JOIN course ON course_cycle.course_id = course.course_id
+  WHERE (course_cycle.course_id = $1)
+  `
+	rows, err := database.Pool.Query(context.Background(), query, id)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+	classes, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[models.ClassDB])
+	if err != nil {
+		return err
+	}
+	if len(classes) == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "Классы не найдены")
+	}
+	return c.JSON(classes)
+}
