@@ -1,9 +1,10 @@
 package users
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/middleware"
 	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupUserRouter(router *fiber.Router) {
@@ -11,6 +12,6 @@ func SetupUserRouter(router *fiber.Router) {
 
 	usersRouter.Get("/", findMany)
 	usersRouter.Get("/:id", findOne)
-	usersRouter.Patch("/:id", middleware.BodyParserValidatorMiddleware(&models.UpdateUserDTO{}), updateOne)
+	usersRouter.Patch("/:id", middleware.BodyParserValidatorMiddlewareForStruct(&models.UpdateUserDTO{}), updateOne)
 	usersRouter.Delete("/:id", deleteOne)
 }

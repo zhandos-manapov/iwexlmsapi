@@ -33,10 +33,10 @@ func updloadFiles(c *fiber.Ctx) error {
 
 		for _, file := range form.File["uploadFiles"] {
 			uploadedFile, err := file.Open()
+			defer uploadedFile.Close()
 			if err != nil {
 				return err
 			}
-			defer uploadedFile.Close()
 			targetPath := path.Join(CONTENT_ROOT_PATH, body.Path, file.Filename)
 			fmt.Println(targetPath)
 

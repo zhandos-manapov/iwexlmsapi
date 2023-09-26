@@ -100,16 +100,16 @@ func copyFiles(c *fiber.Ctx) error {
 				toPath = path.Join(CONTENT_ROOT_PATH, body.TargetPath, copyName)
 				if item.IsFile {
 					originalFile, err := os.Open(fromPath)
+					defer originalFile.Close()
 					if err != nil {
 						return err
 					}
-					defer originalFile.Close()
 
 					newFile, err := os.Create(toPath)
+					defer newFile.Close()
 					if err != nil {
 						return err
 					}
-					defer newFile.Close()
 
 					if _, err := io.Copy(newFile, originalFile); err != nil {
 						return err
