@@ -91,7 +91,7 @@ func findMany(c *fiber.Ctx) error {
 			course_cycle.course_code,
 			branch_office.name as branch_name,
 			course.name as course_name,
-	 (SELECT COUNT(student_id) FROM enrol as countUser WHERE countUser.cycle_id = course_cycle.id) as users 
+	 (SELECT COUNT(student_id) FROM enrol as countUser WHERE countUser.cycle_id = course_cycle.id) as students 
 		FROM course_cycle
 			INNER JOIN branch_office ON course_cycle.branch_id = branch_office.id
 			INNER JOIN course ON course_cycle.course_id = course.course_id`
