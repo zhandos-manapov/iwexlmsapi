@@ -33,6 +33,7 @@ type ClassDB struct {
 	CourseName        string    `json:"course_name" db:"course_name"`
 	BranchID          int       `json:"branch_id" db:"branch_id"`
 	CourseID          int       `json:"course_id" db:"course_id"`
+	Students          int       `json:"students" db:"students"`
 }
 
 type CreateClassDTO struct {
