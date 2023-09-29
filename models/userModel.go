@@ -1,19 +1,23 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type UserDB struct {
-	Id            int       `json:"id" db:"id"`
-	FirstName     string    `json:"first_name" db:"first_name"`
-	LastName      string    `json:"last_name" db:"last_name"`
-	Email         string    `json:"email" db:"email"`
-	ContactNumber string    `json:"contact_number" db:"contact_number"`
-	DateOfBirth   time.Time `json:"date_of_birth" db:"date_of_birth"`
-	Role          byte      `json:"role" db:"role"`
-	RoleName      string    `json:"role_name" db:"role_name"`
-	IsActive      bool      `json:"is_active" db:"is_active"`
-	Hash          string    `json:"hash" db:"hash"`
-	Salt          string    `json:"salt" db:"salt"`
+	Id            pgtype.Numeric `json:"id" db:"id"`
+	FirstName     pgtype.Text    `json:"first_name" db:"first_name"`
+	LastName      pgtype.Text    `json:"last_name" db:"last_name"`
+	Email         pgtype.Text    `json:"email" db:"email"`
+	ContactNumber pgtype.Text    `json:"contact_number" db:"contact_number"`
+	DateOfBirth   time.Time      `json:"date_of_birth" db:"date_of_birth"`
+	Role          pgtype.Numeric `json:"role" db:"role"`
+	RoleName      pgtype.Text    `json:"role_name" db:"role_name"`
+	IsActive      pgtype.Bool    `json:"is_active" db:"is_active"`
+	Hash          pgtype.Text    `json:"hash" db:"hash"`
+	Salt          pgtype.Text    `json:"salt" db:"salt"`
 }
 
 type UserSignUpDTO struct {

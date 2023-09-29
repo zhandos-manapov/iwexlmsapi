@@ -1,8 +1,10 @@
 package models
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type LevelDB struct {
-	ID        int    `json:"id" db:"id"`
-	LevelName string `json:"level_name" db:"level_name"`
+	ID        pgtype.Numeric `json:"id" db:"id"`
+	LevelName pgtype.Text    `json:"level_name" db:"level_name"`
 }
 
 type CreateLevelDTO struct {

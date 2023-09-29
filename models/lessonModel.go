@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type CreateLessonDTO struct {
 	ID          int    `json:"id"`
@@ -24,11 +28,11 @@ type UpdateLessonDTO struct {
 }
 
 type LessonDB struct {
-	ID          int       `json:"id"`
-	LessonTitle string    `json:"lesson_title" db:"lesson_title"`
-	CycleId     int       `json:"cycle_id" db:"cycle_id"`
-	StartTime   time.Time `json:"start_time" db:"start_time"`
-	EndTime     time.Time `json:"end_time" db:"end_time"`
-	Description string    `json:"description" db:"description"`
-	CourseCode  string    `json:"course_code" db:"course_code"`
+	ID          pgtype.Numeric `json:"id"`
+	LessonTitle pgtype.Text    `json:"lesson_title" db:"lesson_title"`
+	CycleId     pgtype.Numeric `json:"cycle_id" db:"cycle_id"`
+	StartTime   time.Time      `json:"start_time" db:"start_time"`
+	EndTime     time.Time      `json:"end_time" db:"end_time"`
+	Description pgtype.Text    `json:"description" db:"description"`
+	CourseCode  pgtype.Text    `json:"course_code" db:"course_code"`
 }

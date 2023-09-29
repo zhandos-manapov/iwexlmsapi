@@ -1,9 +1,11 @@
 package models
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type BranchDB struct {
-	ID        int    `json:"id" db:"id"`
-	Name      string `json:"name" db:"name"`
-	AddressID int    `json:"address_id" db:"address_id"`
+	ID        pgtype.Numeric `json:"id" db:"id"`
+	Name      pgtype.Text    `json:"name" db:"name"`
+	AddressID pgtype.Numeric `json:"address_id" db:"address_id"`
 }
 
 type CreateBranchDTO struct {
