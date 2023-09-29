@@ -11,6 +11,10 @@ type CreateLessonDTO struct {
 	Description string `json:"description"`
 }
 
+type GetLessonID struct {
+	Id int `json:"id" db:"id"`
+}
+
 type GetIdLesson struct {
 	Id int `json:"id" db:"id"`
 }

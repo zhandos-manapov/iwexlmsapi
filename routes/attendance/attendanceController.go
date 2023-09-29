@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"iwexlmsapi/database"
 	"iwexlmsapi/models"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
@@ -31,11 +30,12 @@ func findOne(c *fiber.Ctx) error {
 func findMany(c *fiber.Ctx) error {
 	id := c.Params("id")
 	query := `SELECT lesson.start_time,
-	lesson.lesson_title,
-	lesson.id,
-	attended
-	FROM attendance
-	INNER JOIN lesson ON lesson.cycle_id=$1`
+		attendance.attended,
+		lesson.lesson_title,
+		lesson.id
+		FROM lesson
+		INNER JOIN attendance ON lesson.id = attendance.lesson_id
+		WHERE lesson.cycle_id=$1`
 	rows, err := database.Pool.Query(context.Background(), query, id)
 	defer rows.Close()
 	if err != nil {
@@ -76,41 +76,20 @@ func createMany(c *fiber.Ctx) error {
 	} else if tag.RowsAffected() < 1 {
 		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Успешно добавлен"})
+	return c.JSON(models.RespMsg{Message: "Успешно добавлено"})
 }
 
 func updateOne(c *fiber.Ctx) error {
 	id := c.Params("id")
 	attendance := c.Locals("body").(*models.UpdAttendance)
 
-	if attendance.LessonId == 0 && attendance.StudentId == 0 && attendance.Attended == false {
+	if attendance.Attended == false {
 		return fiber.NewError(fiber.StatusBadRequest, "Не указаны данные для обновления")
 	}
 
-	query := strings.Builder{}
-	query.WriteString("UPDATE attendance SET")
-	queryParams := []any{id}
+	query := `UPDATE attendance SET attended=$2 WHERE lesson_id=$1 AND student_id=$3`
 
-	if attendance.LessonId != 0 {
-		query.WriteString(fmt.Sprintf(" lesson_id=$%d,", len(queryParams)+1))
-		queryParams = append(queryParams, attendance.LessonId)
-	}
-
-	if attendance.StudentId != 0 {
-		query.WriteString(fmt.Sprintf(" student_id=$%d,", len(queryParams)+1))
-		queryParams = append(queryParams, attendance.StudentId)
-	}
-
-	if attendance.Attended != false {
-		query.WriteString(fmt.Sprintf(" attended=$%d,", len(queryParams)+1))
-		queryParams = append(queryParams, attendance.Attended)
-	}
-
-	queryString := query.String()
-	queryString = queryString[:len(queryString)-1]
-	queryString += " WHERE lesson_id=$1"
-
-	if tag, err := database.Pool.Exec(context.Background(), queryString, queryParams...); err != nil {
+	if tag, err := database.Pool.Exec(context.Background(), query, id, attendance.Attended, attendance.StudentId); err != nil {
 		return err
 	} else if tag.RowsAffected() < 1 {
 		return fiber.NewError(fiber.StatusNotFound, "Отчёт не найден")

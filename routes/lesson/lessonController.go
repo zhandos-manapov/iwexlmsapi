@@ -109,14 +109,18 @@ func createMany(c *fiber.Ctx) error {
 		query += fmt.Sprintf("($%d, $%d, $%d, $%d, $%d),", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5)
 	}
 
-	query = query[:len(query)-1]
+	query = query[:len(query)-1] + "RETURNING id"
 
-	if tag, err := database.Pool.Exec(context.Background(), query, args...); err != nil {
+	rows, err := database.Pool.Query(context.Background(), query, args...)
+	if err != nil {
 		return err
-	} else if tag.RowsAffected() < 1 {
-		return fiber.ErrInternalServerError
 	}
-	return c.JSON(models.RespMsg{Message: "Урок успешно добавлен"})
+	defer rows.Close()
+	res, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[models.GetIdLesson])
+	if err != nil {
+		return err
+	}
+	return c.JSON(res)
 }
 
 func updateOne(c *fiber.Ctx) error {
