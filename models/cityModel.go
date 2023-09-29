@@ -1,9 +1,11 @@
 package models
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type CityDB struct {
-	ID       int    `json:"id" db:"id"`
-	CityName string `json:"city_name" db:"city_name"`
-	RegionID int    `json:"region_id" db:"region_id"`
+	ID       pgtype.Numeric `json:"id" db:"id"`
+	CityName pgtype.Text    `json:"city_name" db:"city_name"`
+	RegionID pgtype.Numeric `json:"region_id" db:"region_id"`
 }
 
 type CreateCityDTO struct {

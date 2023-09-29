@@ -26,10 +26,10 @@ func signIn(c *fiber.Ctx) error {
 	if err := database.Pool.QueryRow(context.Background(), query, user.Email).Scan(&dbUser.Id, &dbUser.Email, &dbUser.Hash, &dbUser.Salt, &dbUser.RoleName, &dbUser.IsActive); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Пользователь не найден")
 	}
-	if dbUser.IsActive == false {
+	if dbUser.IsActive.Bool == false {
 		return fiber.NewError(fiber.StatusForbidden, "Дождитесь одобрения администратора")
 	}
-	validPass := utils.ValidPassword(user.Password, dbUser.Hash, dbUser.Salt)
+	validPass := utils.ValidPassword(user.Password, dbUser.Hash.String, dbUser.Salt.String)
 	if !validPass {
 		return fiber.NewError(fiber.StatusUnauthorized, "Неверный пароль")
 	}

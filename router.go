@@ -10,6 +10,7 @@ import (
 	"iwexlmsapi/routes/files"
 	"iwexlmsapi/routes/lesson"
 	"iwexlmsapi/routes/level"
+	"iwexlmsapi/routes/quiz"
 	"iwexlmsapi/routes/region"
 	"iwexlmsapi/routes/users"
 
@@ -31,4 +32,5 @@ func setupRoutes(app *fiber.App) {
 	users.SetupUserRouter(&mainRouter)
 	branch.SetupBranchRouter(&mainRouter)
 	class.SetupClassRouter(&mainRouter)
+	quiz.SetupQuizRouter(&mainRouter)
 }

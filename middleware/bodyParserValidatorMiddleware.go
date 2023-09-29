@@ -33,7 +33,8 @@ type reqBodyType interface {
 		models.CreateClassDTO |
 		models.EnrollStudentsDTO |
 		models.FileDownloadReqBody |
-		models.FileUploadReqBody 
+		models.FileUploadReqBody |
+		models.CreateQuizDTO
 }
 
 func BodyParserValidatorMiddlewareForStruct[T reqBodyType](data *T) func(c *fiber.Ctx) error {
