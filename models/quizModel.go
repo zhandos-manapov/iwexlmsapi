@@ -31,4 +31,5 @@ type QuizDB struct {
 type CreateQuizDTO struct {
 	ID       int    `json:"id"`
 	QuizName string `json:"quiz_name" validate:"required,min=2,max=50"`
+	CycleId  int    `json:"cycle_id"`
 }

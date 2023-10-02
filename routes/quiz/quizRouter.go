@@ -10,6 +10,6 @@ import (
 func SetupQuizRouter(router *fiber.Router) {
 	quizRouter := (*router).Group("/quizzes")
 
-	quizRouter.Get("/", findMany)
+	quizRouter.Get("/", findManyByCycleId)
 	quizRouter.Post("/", middleware.BodyParserValidatorMiddlewareForStruct(&models.CreateQuizDTO{}), createOne)
 }
