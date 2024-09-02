@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -27,7 +28,6 @@ func main() {
 
 	utils.InitKeys()
 	files.InitConstants()
-
 	database.ConnectToDB()
 	defer database.DisconnectFromDB()
 
@@ -45,6 +45,11 @@ func main() {
 			return c.Status(code).JSON(models.RespMsg{Message: err.Error()})
 		},
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+	}))
 
 	setupRoutes(app)
 	app.Listen(":3030")

@@ -11,20 +11,25 @@ import (
 
 func signIn(c *fiber.Ctx) error {
 	body := c.Locals("body")
-	user := body.(*models.UserLog)
+	user := body.(*models.UserSignInDTO)
 	query := `
-    SELECT users.id, users.email, users.hash, users.salt, role.role_name, users.is_active
-    FROM users
-    INNER JOIN role ON users.role = role.id
-    WHERE users.email=$1`
-	dbUser := models.User{}
+	SELECT users.id,
+		users.email,
+		users.hash,
+		users.salt,
+		role.role_name,
+		users.is_active
+	FROM users
+		INNER JOIN role ON users.role = role.id
+	WHERE users.email = $1`
+	dbUser := models.UserDB{}
 	if err := database.Pool.QueryRow(context.Background(), query, user.Email).Scan(&dbUser.Id, &dbUser.Email, &dbUser.Hash, &dbUser.Salt, &dbUser.RoleName, &dbUser.IsActive); err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Пользователь не найден")
 	}
-	if dbUser.IsActive == false {
+	if dbUser.IsActive.Bool == false {
 		return fiber.NewError(fiber.StatusForbidden, "Дождитесь одобрения администратора")
 	}
-	validPass := utils.ValidPassword(user.Password, dbUser.Hash, dbUser.Salt)
+	validPass := utils.ValidPassword(user.Password, dbUser.Hash.String, dbUser.Salt.String)
 	if !validPass {
 		return fiber.NewError(fiber.StatusUnauthorized, "Неверный пароль")
 	}
@@ -37,7 +42,7 @@ func signIn(c *fiber.Ctx) error {
 
 func signUp(c *fiber.Ctx) error {
 	body := c.Locals("body")
-	user := body.(models.User)
+	user := body.(models.UserSignUpDTO)
 	query := "SELECT email FROM users WHERE email = $1"
 	result, err := database.Pool.Query(context.Background(), query, user.Email)
 	if err != nil {

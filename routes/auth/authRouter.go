@@ -1,14 +1,15 @@
 package auth
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"iwexlmsapi/middleware"
 	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func SetupAuthRoute(router *fiber.Router) {
+func SetupAuthRouter(router *fiber.Router) {
 	authRouter := (*router).Group("/auth")
 
-	authRouter.Post("/signin", middleware.BodyParserValidatorMiddleware(&models.UserLog{}), signIn)
-	authRouter.Post("/signup", middleware.BodyParserValidatorMiddleware(&models.User{}), signUp)
+	authRouter.Post("/signin", middleware.BodyParserValidatorMiddlewareForStruct(&models.UserSignInDTO{}), signIn)
+	authRouter.Post("/signup", middleware.BodyParserValidatorMiddlewareForStruct(&models.UserSignUpDTO{}), signUp)
 }

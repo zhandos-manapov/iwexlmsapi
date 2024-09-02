@@ -1,9 +1,13 @@
 package files
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"iwexlmsapi/models"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func fileOperations(c *fiber.Ctx) error {
-	body := c.Locals("body").(*fileOperationsReqBody)
+	body := c.Locals("body").(*models.FileOperationsReqBody)
 
 	switch body.Action {
 	case "details":
@@ -22,7 +26,7 @@ func fileOperations(c *fiber.Ctx) error {
 		return searchItem(c)
 	case "read":
 		return readFolder(c)
+	default:
+		return nil
 	}
-
-	return nil
 }
